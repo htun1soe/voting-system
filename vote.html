@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fresher's Choice · UniVote</title>
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #e8f0f8 0%, #d4e2f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .voting-card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(4px);
+            border-radius: 56px 56px 40px 40px;
+            box-shadow: 0 30px 50px -18px rgba(26, 35, 60, 0.35), 0 8px 20px rgba(0,0,0,0.04);
+            padding: 2.4rem 2.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+            min-height: 600px;
+        }
+
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 3px dashed #b3c6df;
+            padding-bottom: 1.2rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .header-left h1 {
+            font-weight: 800;
+            font-size: 2.4rem;
+            letter-spacing: -0.5px;
+            color: #1c2a44;
+        }
+
+        .header-left i {
+            font-size: 2.6rem;
+            color: #f7c948;
+            text-shadow: 0 2px 8px rgba(247, 201, 72, 0.5);
+        }
+
+        .fresher-badge {
+            background: #f7e9b0;
+            padding: 0.5rem 1.6rem;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1f2b44;
+            box-shadow: 0 4px 0 #b3c6df;
+            border: 1px solid white;
+            letter-spacing: 0.3px;
+        }
+        .fresher-badge i {
+            margin-right: 10px;
+            color: #d94f4f;
+        }
+
+        .subhead {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .subhead-left {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem 1.2rem;
+        }
+
+        .subhead-left p {
+            background: #eef3fa;
+            padding: 0.5rem 1.8rem;
+            border-radius: 60px;
+            font-weight: 500;
+            color: #1f2f4a;
+            border: 1px solid #ced9ea;
+            font-size: 1.05rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            margin: 0;
+        }
+
+        .subhead-left p i {
+            color: #d94f4f;
+            margin-right: 10px;
+        }
+
+        .vote-count {
+            background: #1c2a44;
+            color: white;
+            padding: 0.5rem 2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 6px 0 #b3c6df;
+            border: 1px solid #ffffff80;
+            white-space: nowrap;
+        }
+
+        .vote-count i {
+            margin-right: 10px;
+            color: #f7c948;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== PAGE 1: CATEGORIES ===== */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 1.8rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 32px;
+            padding: 1.8rem 0.8rem 1.6rem;
+            text-align: center;
+            box-shadow: 0 14px 24px -10px rgba(28, 42, 68, 0.12);
+            border: 2px solid #dae3f0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            backdrop-filter: blur(2px);
+        }
+
+        .category-card:hover {
+            transform: translateY(-6px);
+            border-color: #1c2a44;
+            box-shadow: 0 24px 32px -14px rgba(28, 42, 68, 0.2);
+        }
+
+        .category-card .category-icon {
+            width: 80px;
+            height: 80px;
+            background: #e7eef9;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            color: #1c2a44;
+            border: 3px solid #f7c948;
+            box-shadow: 0 6px 0 #b3c6df;
+            transition: 0.2s;
+        }
+
+        .category-card h3 {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #1c2a44;
+            margin: 10px 0 4px;
+        }
+
+        .category-card .subtitle {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #3f5a7a;
+            background: #eef3fa;
+            display: inline-block;
+            padding: 0.2rem 1.2rem;
+            border-radius: 60px;
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+        }
+
+        .category-card .vote-count-badge {
+            background: #f7e9b0;
+            border-radius: 60px;
+            padding: 0.2rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1f2b44;
+            display: inline-block;
+            border: 1px solid #ffffff;
+        }
+
+        .category-card .voted-student {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #d94f4f;
+            font-weight: 600;
+            background: #fef0f0;
+            padding: 0.2rem 0.8rem;
+            border-radius: 60px;
+            display: inline-block;
+        }
+
+        .category-card .confirmed-badge {
+            margin-top: 6px;
+            font-size: 0.7rem;
+            color: white;
+            font-weight: 700;
+            background: #1c8a4a;
+            padding: 0.15rem 0.8rem;
+            border-radius: 60px;
+            display: inline-block;
+        }
+
+        /* ===== PAGE 2: STUDENT LIST ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+            flex-wrap: wrap;
+        }
+
+        .page-header h2 {
+            font-size: 1.8rem;
+            color: #1c2a44;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h2 i {
+            color: #f7c948;
+        }
+
+        .back-btn {
+            background: #eef3fa;
+            border: 2px solid #1c2a44;
+            color: #1c2a44;
+            padding: 0.5rem 1.6rem;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.15s ease;
+            box-shadow: 0 4px 0 #b3c6df;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            background: #e3eaf3;
+            transform: scale(1.02);
+        }
+
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 1.8rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .student-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.2rem 0.8rem 1.2rem;
+            text-align: center;
+            border: 2px solid #dae3f0;
+            box-shadow: 0 8px 16px -8px rgba(28, 42, 68, 0.08);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .student-card:hover:not(.voted-student-card):not(.disabled-card) {
+            transform: translateY(-6px);
+            border-color: #1c2a44;
+            box-shadow: 0 16px 24px -12px rgba(28, 42, 68, 0.2);
+        }
+
+        .student-card.voted-student-card {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-color: #d94f4f;
+        }
+
+        .student-card.disabled-card {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #b0b0b0;
+        }
+
+        .student-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e7eef9;
+            border: 3px solid #b3c6df;
+            box-shadow: 0 4px 0 #b3c6df;
+            transition: 0.2s;
+            overflow: hidden;
+        }
+
+        .student-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .student-card h4 {
+            font-weight: 700;
+            color: #1c2a44;
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+
+        .student-card .student-major {
+            font-size: 0.8rem;
+            color: #3f5a7a;
+            background: #eef3fa;
+            padding: 0.2rem 1rem;
+            border-radius: 60px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .student-card .select-hint {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1c2a44;
+            background: #f7e9b0;
+            padding: 0.2rem 1.2rem;
+            border-radius: 60px;
+            display: inline-block;
+            border: 1px solid #ffffff;
+        }
+
+        .student-card .select-hint i {
+            color: #d94f4f;
+            margin-right: 4px;
+        }
+
+        .student-card .voted-badge {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+            background: #d94f4f;
+            padding: 0.2rem 1.2rem;
+            border-radius: 60px;
+            display: inline-block;
+        }
+
+        /* ===== PAGE 3: STUDENT DETAILS ===== */
+        .detail-card {
+            background: white;
+            border-radius: 32px;
+            padding: 2.5rem 2rem;
+            max-width: 550px;
+            margin: 0 auto;
+            text-align: center;
+            border: 2px solid #dae3f0;
+            box-shadow: 0 14px 24px -10px rgba(28, 42, 68, 0.12);
+        }
+
+        .detail-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e7eef9;
+            border: 4px solid #f7c948;
+            box-shadow: 0 8px 0 #b3c6df;
+            overflow: hidden;
+        }
+
+        .detail-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .detail-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1c2a44;
+            margin-bottom: 4px;
+        }
+
+        .detail-major {
+            font-size: 1.1rem;
+            color: #3f5a7a;
+            background: #eef3fa;
+            padding: 0.3rem 1.8rem;
+            border-radius: 60px;
+            display: inline-block;
+            margin: 8px 0 16px;
+        }
+
+        .detail-category {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1c2a44;
+            background: #f7e9b0;
+            padding: 0.3rem 1.8rem;
+            border-radius: 60px;
+            display: inline-block;
+            margin: 8px 0 20px;
+            border: 1px solid #ffffff;
+        }
+
+        .detail-status {
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.3rem 1.5rem;
+            border-radius: 60px;
+            display: inline-block;
+            margin: 8px 0 16px;
+        }
+
+        .detail-status.pending {
+            background: #f7e9b0;
+            color: #1c2a44;
+        }
+
+        .detail-status.confirmed {
+            background: #1c8a4a;
+            color: white;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .vote-action-btn {
+            background: #1c2a44;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 0.7rem 2.2rem;
+            border-radius: 60px;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.15s ease;
+            box-shadow: 0 4px 0 #b3c6df;
+            border: 1px solid #ffffff40;
+        }
+
+        .vote-action-btn i {
+            color: #f7c948;
+        }
+
+        .vote-action-btn:hover:not(:disabled) {
+            background: #2a3e62;
+            transform: scale(1.02);
+        }
+
+        .vote-action-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .vote-action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #6a7a8a;
+        }
+
+        .vote-action-btn.voted {
+            background: #d94f4f;
+            box-shadow: 0 4px 0 #b3c6df;
+            opacity: 0.85;
+            cursor: default;
+        }
+        .vote-action-btn.voted i {
+            color: white;
+        }
+
+        .vote-action-btn.confirmed-btn {
+            background: #1c8a4a;
+            box-shadow: 0 4px 0 #b3c6df;
+            cursor: default;
+        }
+        .vote-action-btn.confirmed-btn i {
+            color: white;
+        }
+
+        .vote-action-btn.revote-btn {
+            background: #f7a83a;
+            box-shadow: 0 4px 0 #b3c6df;
+        }
+        .vote-action-btn.revote-btn i {
+            color: #1c2a44;
+        }
+        .vote-action-btn.revote-btn:hover:not(:disabled) {
+            background: #e8992a;
+        }
+
+        .detail-back-btn {
+            background: #eef3fa;
+            border: 2px solid #1c2a44;
+            color: #1c2a44;
+            padding: 0.7rem 2rem;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.15s ease;
+            box-shadow: 0 4px 0 #b3c6df;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-back-btn:hover {
+            background: #e3eaf3;
+            transform: scale(1.02);
+        }
+
+        .detail-back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .toast-msg {
+            background: #1c2a44;
+            color: white;
+            padding: 0.3rem 1.8rem;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-left: 6px solid #f7c948;
+            display: inline-block;
+        }
+        .toast-msg i {
+            margin-right: 8px;
+            color: #f7c948;
+        }
+
+        .action-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px dashed #b3c6df;
+        }
+
+        .reset-btn {
+            background: #f7e9b0;
+            border: 2px solid #1c2a44;
+            color: #1c2a44;
+            padding: 0.65rem 2.2rem;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.15s ease;
+            box-shadow: 0 4px 0 #b3c6df;
+        }
+
+        .reset-btn i {
+            color: #d94f4f;
+        }
+
+        .reset-btn:hover {
+            background: #f5e09e;
+            transform: scale(1.02);
+        }
+
+        .reset-btn:active {
+            transform: scale(0.95);
+        }
+
+        .winner-message {
+            background: #eef3fa;
+            padding: 0.4rem 2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            color: #1c2a44;
+            border: 1px solid #b3c6df;
+            font-size: 1rem;
+        }
+
+        .winner-message i {
+            color: #f7c948;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 680px) {
+            .voting-card { padding: 1.5rem 1.2rem; }
+            .header-left h1 { font-size: 1.7rem; }
+            .subhead { flex-direction: column; align-items: stretch; }
+            .categories-grid { gap: 1.2rem; }
+            .student-grid { gap: 1rem; }
+            .detail-card { padding: 1.8rem 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="voting-card">
+    <!-- header -->
+    <div class="header">
+        <div class="header-left">
+            <i class="fas fa-crown"></i>
+            <h1>Fresher's Crown</h1>
+        </div>
+        <div class="fresher-badge">
+            <i class="fas fa-fire"></i> Welcome '26
+        </div>
+    </div>
+
+    <!-- subhead -->
+    <div class="subhead">
+        <div class="subhead-left">
+            <p><i class="fas fa-hands-clapping"></i> Vote for your favourites!</p>
+        </div>
+        <div class="vote-count" id="totalVotesDisplay">
+            <i class="fas fa-vote-yea"></i> <span id="totalVotesCount">0</span> / 6 confirmed
+        </div>
+    </div>
+
+    <!-- ===== PAGE 1: CATEGORIES ===== -->
+    <div class="page active" id="pageCategories">
+        <h2 style="font-size: 1.6rem; color: #1c2a44; margin-bottom: 1rem;">
+            <i class="fas fa-trophy" style="color: #f7c948;"></i> Select a category
+        </h2>
+        <div class="categories-grid" id="categoriesContainer">
+            <!-- injected by JS -->
+        </div>
+    </div>
+
+    <!-- ===== PAGE 2: STUDENT LIST ===== -->
+    <div class="page" id="pageStudents">
+        <div class="page-header">
+            <button class="back-btn" id="backToCategoriesBtn"><i class="fas fa-arrow-left"></i> Back</button>
+            <h2><i class="fas fa-users"></i> <span id="categoryTitle">Category</span> — select a student</h2>
+        </div>
+        <div class="student-grid" id="studentGrid">
+            <!-- injected by JS -->
+        </div>
+    </div>
+
+    <!-- ===== PAGE 3: STUDENT DETAILS ===== -->
+    <div class="page" id="pageDetails">
+        <div class="page-header">
+            <button class="back-btn" id="backToStudentsBtn"><i class="fas fa-arrow-left"></i> Back</button>
+            <h2><i class="fas fa-id-card"></i> Student details</h2>
+        </div>
+        <div class="detail-card" id="detailCard">
+            <!-- injected by JS -->
+        </div>
+    </div>
+
+    <!-- action area -->
+    <div class="action-area">
+        <div class="winner-message" id="winnerMessage">
+            <i class="fas fa-crown"></i> <span id="winnerText">Vote & celebrate!</span>
+        </div>
+        <button class="reset-btn" id="resetVotesBtn">
+            <i class="fas fa-undo-alt"></i> Reset all
+        </button>
+    </div>
+
+    <!-- toast -->
+    <div style="margin-top: 22px; display: flex; justify-content: flex-end;">
+        <span class="toast-msg" id="toastMsg"><i class="fas fa-star"></i>  pick a category to start!</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- DATA ----------
+        const categoriesData = [
+            { id: 1, name: 'King', emoji: '👑' },
+            { id: 2, name: 'Queen', emoji: '👸' },
+            { id: 3, name: 'Smart', emoji: '🧠' },
+            { id: 4, name: 'Style', emoji: '✨' },
+            { id: 5, name: 'Male Popular', emoji: '💪' },
+            { id: 6, name: 'Female Popular', emoji: '🌸' }
+        ];
+
+        // Helper to generate avatar URL using UI Avatars API (human photos)
+        function getAvatarUrl(name) {
+            return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=128&background=6C8EBF&color=fff&bold=true&font-size=0.5`;
+        }
+
+        // Female students for Queen, Style, Female Popular
+        const femaleStudents = [
+            { id: 1, name: 'Theint Thinzar Htet', major: 'CEIT' },
+            { id: 2, name: 'Thae Nge Nge Thet Htwe', major: 'EP' },
+            { id: 3, name: 'Eaint Nadi Khin', major: 'MC' },
+            { id: 4, name: 'Nan Shwe Moe Thae', major: 'BioTech' },
+            { id: 5, name: 'Eaint Chue Wai Min', major: 'Civil' },
+            { id: 6, name: 'Moe Kyawt Kyawt Aung', major: 'Archi' },
+            { id: 7, name: 'Htet Htet Lin', major: 'EC' },
+            { id: 8, name: 'La Ye Kaung Yang', major: 'Chemical' }
+        ];
+
+        // Male students for King, Smart, Male Popular
+        const maleStudents = [
+            { id: 9, name: 'Paing Htet Kyaw Swar Myo', major: 'EP' },
+            { id: 10, name: 'Aung Kyaw San', major: 'CEIT' },
+            { id: 11, name: 'Yell Min Khant', major: 'Civil' },
+            { id: 12, name: 'Zin Min Myat', major: 'Archi' },
+            { id: 13, name: 'Zin Min Aung', major: 'MC' },
+            { id: 14, name: 'Nay Thway Maung', major: 'EC' },
+            { id: 15, name: 'Kaung Myat Bhone', major: 'Chemical' },
+            { id: 16, name: 'Hlyan Thant Maung', major: 'BioTech' }
+        ];
+
+        // All students combined with avatar URLs
+        const allStudents = [
+            ...femaleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) })),
+            ...maleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) }))
+        ];
+
+        // Category to student mapping
+        const categoryStudents = {
+            1: maleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) })),   // King
+            2: femaleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) })), // Queen
+            3: maleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) })),   // Smart
+            4: femaleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) })), // Style
+            5: maleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) })),   // Male Popular
+            6: femaleStudents.map(s => ({ ...s, avatar: getAvatarUrl(s.name) }))  // Female Popular
+        };
+
+        // vote tracking: { categoryId: { studentId, confirmed } }
+        let votes = {};
+        // Track which students have been voted (to prevent duplicates across categories)
+        let votedStudentIds = new Set();
+        // Track confirmed categories
+        let confirmedCategories = new Set();
+        // current selected category for student list
+        let currentCategoryId = null;
+        // current selected student for detail
+        let currentStudentId = null;
+        // total votes per category for display
+        let categoryVoteCounts = {};
+        categoriesData.forEach(c => categoryVoteCounts[c.id] = 0);
+
+        // DOM refs
+        const pageCategories = document.getElementById('pageCategories');
+        const pageStudents = document.getElementById('pageStudents');
+        const pageDetails = document.getElementById('pageDetails');
+        const categoriesContainer = document.getElementById('categoriesContainer');
+        const studentGrid = document.getElementById('studentGrid');
+        const detailCard = document.getElementById('detailCard');
+        const categoryTitle = document.getElementById('categoryTitle');
+        const totalVotesSpan = document.getElementById('totalVotesCount');
+        const winnerTextSpan = document.getElementById('winnerText');
+        const toastMsg = document.getElementById('toastMsg');
+
+        // ----- helpers -----
+        function getTotalVotes() {
+            return confirmedCategories.size;
+        }
+
+        function getWinner() {
+            let maxVotes = 0;
+            let winner = null;
+            for (const catId in categoryVoteCounts) {
+                if (categoryVoteCounts[catId] > maxVotes) {
+                    maxVotes = categoryVoteCounts[catId];
+                    winner = categoriesData.find(c => c.id === parseInt(catId));
+                }
+            }
+            if (maxVotes === 0) return null;
+            return winner;
+        }
+
+        function updateTotalAndWinner() {
+            const total = getTotalVotes();
+            totalVotesSpan.textContent = total;
+            const winner = getWinner();
+            if (winner && total > 0) {
+                winnerTextSpan.innerHTML = `🏆 ${winner.name} leads! (${categoryVoteCounts[winner.id]} votes)`;
+            } else if (total === 0) {
+                winnerTextSpan.textContent = 'Be the first to vote!';
+            } else {
+                winnerTextSpan.textContent = '🤝 It’s a tie!';
+            }
+        }
+
+        // Check if a student can be voted (not already voted in any category)
+        function isStudentAvailable(studentId) {
+            return !votedStudentIds.has(studentId);
+        }
+
+        // ----- render categories (page 1) -----
+        function renderCategories() {
+            categoriesContainer.innerHTML = '';
+            categoriesData.forEach(cat => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                const count = categoryVoteCounts[cat.id] || 0;
+                const voteData = votes[cat.id];
+                const votedStudent = voteData ? allStudents.find(s => s.id === voteData.studentId) : null;
+                const isConfirmed = confirmedCategories.has(cat.id);
+                
+                let statusHtml = '';
+                if (isConfirmed && votedStudent) {
+                    statusHtml = `<div class="confirmed-badge"><i class="fas fa-check-circle"></i> Confirmed</div>
+                                  <div class="voted-student"><i class="fas fa-user-check"></i> ${votedStudent.name}</div>`;
+                } else if (votedStudent) {
+                    statusHtml = `<div class="voted-student" style="background:#f7e9b0;color:#1c2a44;"><i class="fas fa-clock"></i> Pending: ${votedStudent.name}</div>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="category-icon">${cat.emoji}</div>
+                    <h3>${cat.name}</h3>
+                    <div class="subtitle">fresher category</div>
+                    <div class="vote-count-badge"><i class="fas fa-vote-yea" style="color:#d94f4f;"></i> ${count} votes</div>
+                    ${statusHtml}
+                `;
+                
+                // If category is confirmed, don't allow clicking
+                if (!isConfirmed) {
+                    card.addEventListener('click', () => selectCategory(cat.id));
+                } else {
+                    card.style.cursor = 'default';
+                    card.style.opacity = '0.8';
+                }
+                categoriesContainer.appendChild(card);
+            });
+            updateTotalAndWinner();
+        }
+
+        // ----- select category -> show student list (page 2) -----
+        function selectCategory(categoryId) {
+            // Check if this category already has a confirmed vote
+            if (confirmedCategories.has(categoryId)) {
+                toastMsg.innerHTML = `<i class="fas fa-info-circle" style="color:#f7c948;"></i>  This category is already confirmed!`;
+                toastMsg.style.background = '#2a3e62';
+                return;
+            }
+            
+            currentCategoryId = categoryId;
+            const category = categoriesData.find(c => c.id === categoryId);
+            categoryTitle.textContent = category ? category.name : 'Category';
+            renderStudents();
+            showPage('pageStudents');
+            toastMsg.innerHTML = `<i class="fas fa-users" style="color:#f7c948;"></i>  select a student for ${category.name}`;
+            toastMsg.style.background = '#1c2a44';
+        }
+
+        // ----- render student list (page 2) -----
+        function renderStudents() {
+            studentGrid.innerHTML = '';
+            const students = categoryStudents[currentCategoryId] || [];
+            const currentVote = votes[currentCategoryId];
+            
+            students.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                const isCurrentVote = currentVote && currentVote.studentId === student.id;
+                const alreadyVotedElsewhere = votedStudentIds.has(student.id) && !isCurrentVote;
+                const isAvailable = !alreadyVotedElsewhere || isCurrentVote;
+                
+                if (alreadyVotedElsewhere) {
+                    card.classList.add('voted-student-card');
+                }
+                if (!isAvailable) {
+                    card.classList.add('disabled-card');
+                }
+                
+                let statusHtml = '';
+                if (isCurrentVote) {
+                    statusHtml = `<div class="select-hint" style="background:#d94f4f;color:white;border-color:#d94f4f;">
+                        <i class="fas fa-check-circle"></i> Selected
+                    </div>`;
+                } else if (alreadyVotedElsewhere) {
+                    statusHtml = `<div class="voted-badge" style="background:#8a6d7a;"><i class="fas fa-user-check"></i> Already voted</div>`;
+                } else {
+                    statusHtml = `<div class="select-hint"><i class="fas fa-circle"></i> Select</div>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="student-avatar">
+                        <img src="${student.avatar}" alt="${student.name}" />
+                    </div>
+                    <h4>${student.name}</h4>
+                    <div class="student-major">${student.major}</div>
+                    ${statusHtml}
+                `;
+                
+                if (isAvailable && !isCurrentVote) {
+                    card.addEventListener('click', () => selectStudent(student.id));
+                } else if (isCurrentVote) {
+                    card.addEventListener('click', () => selectStudent(student.id));
+                }
+                studentGrid.appendChild(card);
+            });
+        }
+
+        // ----- select student -> show details (page 3) -----
+        function selectStudent(studentId) {
+            // Check if student already voted elsewhere (but allow if it's the current vote)
+            const currentVote = votes[currentCategoryId];
+            if (votedStudentIds.has(studentId) && (!currentVote || currentVote.studentId !== studentId)) {
+                toastMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#f7c948;"></i>  This student already has a vote in another category!`;
+                toastMsg.style.background = '#2a3e62';
+                return;
+            }
+            
+            currentStudentId = studentId;
+            renderDetails();
+            showPage('pageDetails');
+            const student = allStudents.find(s => s.id === studentId);
+            toastMsg.innerHTML = `<i class="fas fa-id-card" style="color:#f7c948;"></i>  ${student.name} — ready to vote!`;
+            toastMsg.style.background = '#1c2a44';
+        }
+
+        // ----- render student details (page 3) -----
+        function renderDetails() {
+            const student = allStudents.find(s => s.id === currentStudentId);
+            const category = categoriesData.find(c => c.id === currentCategoryId);
+            if (!student || !category) return;
+
+            const currentVote = votes[currentCategoryId];
+            const isVoted = currentVote && currentVote.studentId === currentStudentId;
+            const isConfirmed = confirmedCategories.has(currentCategoryId);
+            const isAvailable = !votedStudentIds.has(student.id) || (isVoted && !isConfirmed);
+
+            let statusText = 'Pending confirmation';
+            let statusClass = 'pending';
+            let actionButtons = '';
+
+            if (isConfirmed) {
+                statusText = '✅ Confirmed';
+                statusClass = 'confirmed';
+                actionButtons = `
+                    <button class="vote-action-btn confirmed-btn" disabled>
+                        <i class="fas fa-check-circle"></i> Confirmed
+                    </button>
+                `;
+            } else if (isVoted) {
+                statusText = '⏳ Pending confirmation';
+                statusClass = 'pending';
+                actionButtons = `
+                    <button class="vote-action-btn revote-btn" id="revoteBtn">
+                        <i class="fas fa-undo"></i> Revote
+                    </button>
+                    <button class="vote-action-btn" id="confirmBtn" style="background:#1c8a4a;">
+                        <i class="fas fa-check"></i> Confirm
+                    </button>
+                `;
+            } else {
+                statusText = 'Not voted yet';
+                statusClass = 'pending';
+                actionButtons = `
+                    <button class="vote-action-btn" id="voteBtn">
+                        <i class="fas fa-thumbs-up"></i> Vote now
+                    </button>
+                `;
+            }
+
+            detailCard.innerHTML = `
+                <div class="detail-avatar">
+                    <img src="${student.avatar}" alt="${student.name}" />
+                </div>
+                <div class="detail-name">${student.name}</div>
+                <div class="detail-major"><i class="fas fa-graduation-cap" style="color:#f7c948;"></i> ${student.major}</div>
+                <div class="detail-category"><i class="fas fa-trophy" style="color:#d94f4f;"></i> ${category.name}</div>
+                <div class="detail-status ${statusClass}">${statusText}</div>
+                <div class="detail-actions">
+                    ${actionButtons}
+                    <button class="detail-back-btn" id="detailBackBtn"><i class="fas fa-arrow-left"></i> Back</button>
+                </div>
+            `;
+
+            // Attach event listeners
+            const voteBtn = document.getElementById('voteBtn');
+            if (voteBtn) {
+                voteBtn.addEventListener('click', castVote);
+            }
+            
+            const revoteBtn = document.getElementById('revoteBtn');
+            if (revoteBtn) {
+                revoteBtn.addEventListener('click', revote);
+            }
+            
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', confirmVote);
+            }
+            
+            const detailBackBtn = document.getElementById('detailBackBtn');
+            if (detailBackBtn) {
+                detailBackBtn.addEventListener('click', () => {
+                    showPage('pageStudents');
+                    renderStudents();
+                });
+            }
+        }
+
+        // ----- cast vote -----
+        function castVote() {
+            if (!currentCategoryId || !currentStudentId) return;
+            if (confirmedCategories.has(currentCategoryId)) {
+                toastMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#f7c948;"></i>  This category is already confirmed!`;
+                toastMsg.style.background = '#2a3e62';
+                return;
+            }
+            
+            // Remove any existing vote for this category
+            const existingVote = votes[currentCategoryId];
+            if (existingVote) {
+                votedStudentIds.delete(existingVote.studentId);
+                categoryVoteCounts[currentCategoryId] = (categoryVoteCounts[currentCategoryId] || 1) - 1;
+            }
+            
+            // Check if student already voted elsewhere
+            if (votedStudentIds.has(currentStudentId)) {
+                toastMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#f7c948;"></i>  This student already has a vote in another category!`;
+                toastMsg.style.background = '#2a3e62';
+                return;
+            }
+            
+            // Record vote
+            votes[currentCategoryId] = { studentId: currentStudentId };
+            votedStudentIds.add(currentStudentId);
+            categoryVoteCounts[currentCategoryId] = (categoryVoteCounts[currentCategoryId] || 0) + 1;
+
+            const student = allStudents.find(s => s.id === currentStudentId);
+            const category = categoriesData.find(c => c.id === currentCategoryId);
+            
+            renderDetails();
+            renderCategories();
+            renderStudents();
+            
+            toastMsg.innerHTML = `<i class="fas fa-party-horn" style="color:#f7c948;"></i>  ${student.name} voted for ${category.name}! Please confirm.`;
+            toastMsg.style.background = '#1c2a44';
+        }
+
+        // ----- revote -----
+        function revote() {
+            if (!currentCategoryId) return;
+            if (confirmedCategories.has(currentCategoryId)) {
+                toastMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#f7c948;"></i>  Cannot revote - this category is confirmed!`;
+                toastMsg.style.background = '#2a3e62';
+                return;
+            }
+            
+            // Remove the current vote
+            const currentVote = votes[currentCategoryId];
+            if (currentVote) {
+                votedStudentIds.delete(currentVote.studentId);
+                categoryVoteCounts[currentCategoryId] = Math.max(0, (categoryVoteCounts[currentCategoryId] || 1) - 1);
+                delete votes[currentCategoryId];
+            }
+            
+            renderCategories();
+            renderStudents();
+            showPage('pageStudents');
+            
+            toastMsg.innerHTML = `<i class="fas fa-undo" style="color:#f7c948;"></i>  Vote removed. Select a new student.`;
+            toastMsg.style.background = '#1c2a44';
+        }
+
+        // ----- confirm vote -----
+        function confirmVote() {
+            if (!currentCategoryId) return;
+            if (!votes[currentCategoryId]) {
+                toastMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#f7c948;"></i>  No vote to confirm!`;
+                toastMsg.style.background = '#2a3e62';
+                return;
+            }
+            if (confirmedCategories.has(currentCategoryId)) {
+                toastMsg.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#f7c948;"></i>  Already confirmed!`;
+                toastMsg.style.background = '#2a3e62';
+                return;
+            }
+            
+            confirmedCategories.add(currentCategoryId);
+            const student = allStudents.find(s => s.id === votes[currentCategoryId].studentId);
+            const category = categoriesData.find(c => c.id === currentCategoryId);
+            
+            renderCategories();
+            renderDetails();
+            
+            toastMsg.innerHTML = `<i class="fas fa-check-circle" style="color:#1c8a4a;"></i>  ✅ ${student.name} confirmed for ${category.name}!`;
+            toastMsg.style.background = '#1c8a4a';
+            
+            // Check if all categories are confirmed
+            if (confirmedCategories.size === 6) {
+                toastMsg.innerHTML = `<i class="fas fa-trophy" style="color:#f7c948;"></i>  🎉 All categories confirmed! Voting complete!`;
+                toastMsg.style.background = '#1c2a44';
+            }
+        }
+
+        // ----- page navigation -----
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // ----- reset votes -----
+        function resetVotes() {
+            if (confirmedCategories.size > 0) {
+                if (!confirm('⚠️ This will reset ALL votes including confirmed ones. Continue?')) {
+                    return;
+                }
+            }
+            
+            votes = {};
+            votedStudentIds = new Set();
+            confirmedCategories = new Set();
+            categoriesData.forEach(c => categoryVoteCounts[c.id] = 0);
+            
+            renderCategories();
+            showPage('pageCategories');
+            toastMsg.innerHTML = `<i class="fas fa-rotate-left" style="color:#f7c948;"></i>  All votes reset. Fresh start!`;
+            toastMsg.style.background = '#1c2a44';
+        }
+
+        // ----- event listeners -----
+        document.getElementById('backToCategoriesBtn').addEventListener('click', () => {
+            showPage('pageCategories');
+        });
+
+        document.getElementById('backToStudentsBtn').addEventListener('click', () => {
+            showPage('pageStudents');
+            renderStudents();
+        });
+
+        document.getElementById('resetVotesBtn').addEventListener('click', resetVotes);
+
+        // ----- init -----
+        renderCategories();
+    })();
+</script>
+
+</body>
+</html>
