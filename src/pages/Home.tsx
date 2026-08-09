@@ -1,0 +1,143 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Link } from 'wouter';
+import { Crown, Sparkles, Heart, CheckCircle2, ChevronRight } from 'lucide-react';
+
+export default function Home() {
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      <div className="stars-bg"></div>
+      
+      {/* Abstract decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/20 to-transparent opacity-50 blur-3xl pointer-events-none"></div>
+      
+      <main className="container mx-auto px-6 py-12 md:py-24 relative z-10 max-w-4xl">
+        
+        {/* Hero Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-center mb-20"
+        >
+          <div className="inline-flex items-center justify-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium tracking-widest uppercase">
+            <Sparkles className="w-4 h-4" />
+            <span>The Royal Event</span>
+            <Sparkles className="w-4 h-4" />
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            Vote for Your <br />
+            <span className="gold-gradient-text">King & Queen</span>
+          </h1>
+          
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+            The night is yours. Crown the royalty of our class and celebrate the stars among us. Make your voice heard before the ceremony begins.
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          {/* Rules Section */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="glass-panel rounded-2xl p-8 relative overflow-hidden group hover:border-primary/50 transition-colors"
+          >
+            <div className="absolute top-0 right-0 p-6 opacity-10 transform group-hover:scale-110 transition-transform">
+              <Crown className="w-24 h-24" />
+            </div>
+            
+            <h2 className="text-2xl font-serif text-primary mb-6 flex items-center gap-3">
+              <span className="w-8 h-[1px] bg-primary"></span>
+              The Rules
+            </h2>
+            
+            <ul className="space-y-4 text-muted-foreground">
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>You may cast <strong>ONE</strong> vote per category.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <span className="block mb-1 font-medium text-foreground">Boys Categories:</span>
+                  <span className="text-sm">King, Smartest, Mr. Popular</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <span className="block mb-1 font-medium text-foreground">Girls Categories:</span>
+                  <span className="text-sm">Queen, Most Stylish, Ms. Popular</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <span>Voting closes on <strong>May 15th, 11:59 PM</strong>.</span>
+              </li>
+            </ul>
+          </motion.div>
+
+          {/* How to Vote Section */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="glass-panel rounded-2xl p-8 relative overflow-hidden group hover:border-primary/50 transition-colors"
+          >
+            <div className="absolute top-0 right-0 p-6 opacity-10 transform group-hover:scale-110 transition-transform">
+              <Heart className="w-24 h-24" />
+            </div>
+
+            <h2 className="text-2xl font-serif text-primary mb-6 flex items-center gap-3">
+              <span className="w-8 h-[1px] bg-primary"></span>
+              How to Vote
+            </h2>
+            
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">1</div>
+                <div>
+                  <h3 className="font-medium text-lg mb-1 text-foreground">Browse the Candidates</h3>
+                  <p className="text-sm text-muted-foreground">Swipe through the elegant card stacks for Boys and Girls.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">2</div>
+                <div>
+                  <h3 className="font-medium text-lg mb-1 text-foreground">Select a Profile</h3>
+                  <p className="text-sm text-muted-foreground">Tap any candidate's card to view their full portrait and voting options.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">3</div>
+                <div>
+                  <h3 className="font-medium text-lg mb-1 text-foreground">Cast Your Vote</h3>
+                  <p className="text-sm text-muted-foreground">Tap the glowing title you wish to award them. Make it count!</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* CTA */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
+          className="text-center"
+        >
+          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-5 rounded-full gold-gradient-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(212,175,55,0.4)] group">
+            <span>Walk the Red Carpet</span>
+            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+          </Link>
+          <p className="mt-6 text-sm text-muted-foreground/60 uppercase tracking-widest font-medium">
+            Your vote is anonymous and final
+          </p>
+        </motion.div>
+
+      </main>
+    </div>
+  );
+}
