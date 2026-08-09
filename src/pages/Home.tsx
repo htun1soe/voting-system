@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
-import { Crown, Sparkles, Heart, CheckCircle2, ChevronRight } from 'lucide-react';
+import { CheckCircle2, ChevronRight } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -18,17 +18,10 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center mb-20"
+          className="text-center mb-10"
         >
-          <div className="inline-flex items-center justify-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-medium tracking-widest uppercase">
-            <Sparkles className="w-4 h-4" />
-            <span>The Royal Event</span>
-            <Sparkles className="w-4 h-4" />
-          </div>
-          
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Vote for Your <br />
-            <span className="gold-gradient-text">King & Queen</span>
+            Fresher's <span className="gold-gradient-text">Welcome</span>
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
@@ -36,18 +29,30 @@ export default function Home() {
           </p>
         </motion.div>
 
+        {/* CTA */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
+          className="text-center mb-10"
+        >
+          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-5 rounded-full gold-gradient-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(212,175,55,0.4)] group">
+            <span>Cast Vote</span>
+            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+          </Link>
+          <p className="mt-6 text-sm text-muted-foreground/60 uppercase tracking-widest font-medium">
+            Your vote is anonymous and final
+          </p>
+        </motion.div>
+
         <div className="grid md:grid-cols-2 gap-8 mb-16">
-          {/* Rules Section */}
+          {/* Rules Section */} 
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             className="glass-panel rounded-2xl p-8 relative overflow-hidden group hover:border-primary/50 transition-colors"
           >
-            <div className="absolute top-0 right-0 p-6 opacity-10 transform group-hover:scale-110 transition-transform">
-              <Crown className="w-24 h-24" />
-            </div>
-            
             <h2 className="text-2xl font-serif text-primary mb-6 flex items-center gap-3">
               <span className="w-8 h-[1px] bg-primary"></span>
               The Rules
@@ -62,19 +67,19 @@ export default function Home() {
                 <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
                   <span className="block mb-1 font-medium text-foreground">Boys Categories:</span>
-                  <span className="text-sm">King, Smartest, Mr. Popular</span>
+                  <span className="text-sm">King, Smart, Mr. Popular</span>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
                   <span className="block mb-1 font-medium text-foreground">Girls Categories:</span>
-                  <span className="text-sm">Queen, Most Stylish, Ms. Popular</span>
+                  <span className="text-sm">Queen, Style, Ms. Popular</span>
                 </div>
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <span>Voting closes on <strong>May 15th, 11:59 PM</strong>.</span>
+                <span>Voting will be opened <strong>for 5 hours</strong>.</span>
               </li>
             </ul>
           </motion.div>
@@ -86,9 +91,6 @@ export default function Home() {
             transition={{ duration: 0.6, delay: 0.5 }}
             className="glass-panel rounded-2xl p-8 relative overflow-hidden group hover:border-primary/50 transition-colors"
           >
-            <div className="absolute top-0 right-0 p-6 opacity-10 transform group-hover:scale-110 transition-transform">
-              <Heart className="w-24 h-24" />
-            </div>
 
             <h2 className="text-2xl font-serif text-primary mb-6 flex items-center gap-3">
               <span className="w-8 h-[1px] bg-primary"></span>
@@ -120,22 +122,6 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
-
-        {/* CTA */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.7 }}
-          className="text-center"
-        >
-          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-5 rounded-full gold-gradient-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(212,175,55,0.4)] group">
-            <span>Walk the Red Carpet</span>
-            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <p className="mt-6 text-sm text-muted-foreground/60 uppercase tracking-widest font-medium">
-            Your vote is anonymous and final
-          </p>
-        </motion.div>
 
       </main>
     </div>

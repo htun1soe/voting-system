@@ -55,129 +55,162 @@
 
 /* Base Theme - Dark & Glamorous by default */
 :root {
-  --button-outline: rgba(255, 255, 255, 0.1);
-  --badge-outline: rgba(255, 255, 255, 0.05);
-  --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(255, 255, 255, 0.05);
-  --elevate-2: rgba(255, 255, 255, 0.1);
+  --button-outline: rgba(38, 51, 49, 0.08);
+  --badge-outline: rgba(38, 51, 49, 0.05);
+  --opaque-button-border-intensity: 2;
+  --elevate-1: rgba(38, 51, 49, 0.03);
+  --elevate-2: rgba(38, 51, 49, 0.06);
 
-  /* Deep purple / midnight blue background */
-  --background: 268 100% 5%;
-  --foreground: 45 30% 95%;
+  /* Warm cream background */
+  --background: 35 100% 97%;
+  --foreground: 168 13% 18%;
 
-  /* Dark card with purple tint */
-  --card: 268 50% 8%;
-  --card-foreground: 45 30% 95%;
-  --card-border: 268 40% 15%;
+  /* Clean white cards */
+  --card: 0 0% 100%;
+  --card-foreground: 168 13% 18%;
+  --card-border: 30 30% 89%;
 
-  --popover: 268 60% 7%;
-  --popover-foreground: 45 30% 95%;
-  --popover-border: 268 40% 15%;
+  /* Popovers */
+  --popover: 0 0% 100%;
+  --popover-foreground: 168 13% 18%;
+  --popover-border: 30 30% 89%;
 
-  /* Gold */
-  --primary: 43 74% 49%;
-  --primary-foreground: 268 100% 5%;
-  
-  --secondary: 268 30% 20%;
-  --secondary-foreground: 45 30% 95%;
+  /* Deep teal - primary action */
+  --primary: 188 38% 25%;
+  --primary-foreground: 35 100% 97%;
 
-  --muted: 268 30% 15%;
-  --muted-foreground: 268 15% 65%;
+  /* Pale sage - secondary */
+  --secondary: 92 22% 86%;
+  --secondary-foreground: 168 25% 20%;
 
-  --accent: 43 74% 49%;
-  --accent-foreground: 268 100% 5%;
+  /* Muted */
+  --muted: 35 35% 93%;
+  --muted-foreground: 20 18% 45%;
 
-  --destructive: 350 89% 60%;
-  --destructive-foreground: 45 30% 95%;
+  /* Terracotta accent */
+  --accent: 12 55% 63%;
+  --accent-foreground: 0 0% 100%;
 
-  --border: 268 40% 15%;
-  --input: 268 30% 20%;
-  --ring: 43 74% 49%;
+  /* Error */
+  --destructive: 5 70% 58%;
+  --destructive-foreground: 0 0% 100%;
 
-  --gold: 43 74% 49%;
-  --gold-foreground: 268 100% 5%;
+  /* Borders / Inputs */
+  --border: 30 30% 89%;
+  --input: 35 35% 94%;
+  --ring: 188 38% 25%;
+
+  /* Butter yellow highlight */
+  --gold: 45 78% 72%;
+  --gold-foreground: 30 30% 20%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-serif: 'Playfair Display', Georgia, serif;
   --app-font-mono: Menlo, monospace;
-  
+
   --radius: 1rem;
 }
 
 .dark {
-  /* It's already dark, so keep identical variables */
-  --background: 268 100% 5%;
-  --foreground: 45 30% 95%;
-  --card: 268 50% 8%;
-  --card-foreground: 45 30% 95%;
-  --card-border: 268 40% 15%;
-  --popover: 268 60% 7%;
-  --popover-foreground: 45 30% 95%;
-  --popover-border: 268 40% 15%;
-  --primary: 43 74% 49%;
-  --primary-foreground: 268 100% 5%;
-  --secondary: 268 30% 20%;
-  --secondary-foreground: 45 30% 95%;
-  --muted: 268 30% 15%;
-  --muted-foreground: 268 15% 65%;
-  --accent: 43 74% 49%;
-  --accent-foreground: 268 100% 5%;
-  --border: 268 40% 15%;
-  --input: 268 30% 20%;
-  --ring: 43 74% 49%;
-  --gold: 43 74% 49%;
-  --gold-foreground: 268 100% 5%;
+  --background: 168 20% 12%;
+  --foreground: 35 45% 94%;
+
+  --card: 168 18% 16%;
+  --card-foreground: 35 45% 94%;
+  --card-border: 168 12% 25%;
+
+  --popover: 168 18% 15%;
+  --popover-foreground: 35 45% 94%;
+  --popover-border: 168 12% 25%;
+
+  --primary: 188 38% 45%;
+  --primary-foreground: 35 100% 97%;
+
+  --secondary: 92 15% 22%;
+  --secondary-foreground: 35 45% 94%;
+
+  --muted: 168 15% 20%;
+  --muted-foreground: 35 15% 65%;
+
+  --accent: 12 55% 63%;
+  --accent-foreground: 0 0% 100%;
+
+  --border: 168 12% 25%;
+  --input: 168 15% 20%;
+  --ring: 188 38% 45%;
+
+  --gold: 45 78% 72%;
+  --gold-foreground: 30 30% 15%;
 }
 
 @layer base {
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground selection:bg-primary selection:text-primary-foreground;
-    background-image: radial-gradient(circle at top right, rgba(67, 30, 114, 0.4), transparent 40%),
-                      radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.05), transparent 40%);
+    @apply font-sans antialiased bg-background text-foreground
+      selection:bg-primary selection:text-primary-foreground;
+
+    background-image:
+      radial-gradient(
+        circle at 8% 12%,
+        rgba(243, 215, 122, 0.28),
+        transparent 22%
+      ),
+      radial-gradient(
+        circle at 92% 18%,
+        rgba(217, 130, 107, 0.16),
+        transparent 25%
+      ),
+      radial-gradient(
+        circle at 80% 90%,
+        rgba(220, 228, 213, 0.7),
+        transparent 30%
+      ),
+      linear-gradient(
+        135deg,
+        #FFF9F2 0%,
+        #FAF7EF 50%,
+        #F2F5EC 100%
+      );
+
     background-attachment: fixed;
     min-height: 100dvh;
   }
-  
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif tracking-tight;
   }
 }
 
 .glass-panel {
-  background: rgba(20, 10, 35, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-}
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
 
-.gold-gradient-text {
-  background: linear-gradient(135deg, #F3E5AB 0%, #D4AF37 50%, #C59B27 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+
+  box-shadow:
+    0 10px 35px rgba(40, 84, 90, 0.08);
 }
 
 .gold-gradient-bg {
-  background: linear-gradient(135deg, #F3E5AB 0%, #D4AF37 50%, #C59B27 100%);
+  background: linear-gradient(
+    135deg,
+    #ACCFA3 0%,
+    #84C5B1 100%
+  );
 }
 
-.stars-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  background-image: 
-    radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 40px 70px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 50px 160px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 130px 80px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 160px 120px, #ffffff, rgba(0,0,0,0));
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  opacity: 0.15;
+.gold-gradient-text {
+  background: linear-gradient(
+    135deg,
+    #ACCFA3 0%,
+    #84C5B1 100%
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
