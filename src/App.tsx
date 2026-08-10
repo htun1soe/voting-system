@@ -17,7 +17,7 @@ function Navbar() {
         <Link href="/" className="flex items-center gap-2 group">
           <Crown className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
           <span className="font-serif font-bold text-lg tracking-wide text-foreground">
-            Royal<span className="text-primary">Vote</span>
+            MTU Voting
           </span>
         </Link>
         <div className="flex items-center gap-6">
@@ -29,7 +29,7 @@ function Navbar() {
           </Link>
           <Link
             href="/vote"
-            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Cast Vote
           </Link>

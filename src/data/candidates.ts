@@ -9,21 +9,21 @@ export type Candidate = {
 };
 
 export const BOYS: Candidate[] = [
-  { id: 'b1', name: 'Ethan Rivera', number: '01', image: '/voting/candidates/boy-01.jpg', gender: 'boys' },
-  { id: 'b2', name: 'Marcus Chen', number: '02', image: '/voting/candidates/boy-02.jpg', gender: 'boys' },
-  { id: 'b3', name: 'Jordan Blake', number: '03', image: '/voting/candidates/boy-03.jpg', gender: 'boys' },
-  { id: 'b4', name: 'Liam Okonkwo', number: '04', image: '/voting/candidates/boy-04.jpg', gender: 'boys' },
-  { id: 'b5', name: 'Noah Patel', number: '05', image: '/voting/candidates/boy-05.jpg', gender: 'boys' },
-  { id: 'b6', name: 'Tyler Kim', number: '06', image: '/voting/candidates/boy-06.jpg', gender: 'boys' },
+  { id: 'b1', name: 'Ethan Rivera', number: '01', image: '/candidates/boy-01.jpg', gender: 'boys' },
+  { id: 'b2', name: 'Marcus Chen', number: '02', image: '/candidates/boy-02.jpg', gender: 'boys' },
+  { id: 'b3', name: 'Jordan Blake', number: '03', image: '/candidates/boy-03.jpg', gender: 'boys' },
+  { id: 'b4', name: 'Liam Okonkwo', number: '04', image: '/candidates/boy-04.jpg', gender: 'boys' },
+  { id: 'b5', name: 'Noah Patel', number: '05', image: '/candidates/boy-05.jpg', gender: 'boys' },
+  { id: 'b6', name: 'Tyler Kim', number: '06', image: '/candidates/boy-06.jpg', gender: 'boys' },
 ];
 
 export const GIRLS: Candidate[] = [
-  { id: 'g1', name: 'Sofia Mendez', number: '01', image: '/voting/candidates/girl-01.jpg', gender: 'girls' },
-  { id: 'g2', name: 'Aisha Williams', number: '02', image: '/voting/candidates/girl-02.jpg', gender: 'girls' },
-  { id: 'g3', name: 'Chloe Park', number: '03', image: '/voting/candidates/girl-03.jpg', gender: 'girls' },
-  { id: 'g4', name: 'Isabella Torres', number: '04', image: '/voting/candidates/girl-04.jpg', gender: 'girls' },
-  { id: 'g5', name: 'Maya Johnson', number: '05', image: '/voting/candidates/girl-05.jpg', gender: 'girls' },
-  { id: 'g6', name: 'Zara Ahmed', number: '06', image: '/voting/candidates/girl-06.jpg', gender: 'girls' },
+  { id: 'g1', name: 'Sofia Mendez', number: '01', image: '/candidates/girl-01.jpg', gender: 'girls' },
+  { id: 'g2', name: 'Aisha Williams', number: '02', image: '/candidates/girl-02.jpg', gender: 'girls' },
+  { id: 'g3', name: 'Chloe Park', number: '03', image: '/candidates/girl-03.jpg', gender: 'girls' },
+  { id: 'g4', name: 'Isabella Torres', number: '04', image: '/candidates/girl-04.jpg', gender: 'girls' },
+  { id: 'g5', name: 'Maya Johnson', number: '05', image: '/candidates/girl-05.jpg', gender: 'girls' },
+  { id: 'g6', name: 'Zara Ahmed', number: '06', image: '/candidates/girl-06.jpg', gender: 'girls' },
 ];
 
 export const CATEGORIES = {

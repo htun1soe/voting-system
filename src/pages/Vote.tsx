@@ -73,7 +73,7 @@ export default function Vote() {
 
       <div className="container mx-auto px-4 relative z-10 h-full flex flex-col">
         
-        <header className="text-center mb-16">
+        <header className="text-center mb-8">
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -87,11 +87,6 @@ export default function Vote() {
         <div className="flex-1 grid md:grid-cols-2 gap-12 max-w-5xl mx-auto w-full">
           {/* Boys Stack */}
           <div className="flex flex-col items-center">
-            <h2 className="text-2xl font-serif text-blue-400 mb-8 flex items-center gap-2">
-              <span className="w-12 h-[1px] bg-blue-500/50"></span>
-              The Gentlemen
-              <span className="w-12 h-[1px] bg-blue-500/50"></span>
-            </h2>
             <CardStack 
               candidates={BOYS} 
               currentIndex={boyIndex} 
@@ -103,11 +98,6 @@ export default function Vote() {
 
           {/* Girls Stack */}
           <div className="flex flex-col items-center">
-            <h2 className="text-2xl font-serif text-pink-400 mb-8 flex items-center gap-2">
-              <span className="w-12 h-[1px] bg-pink-500/50"></span>
-              The Ladies
-              <span className="w-12 h-[1px] bg-pink-500/50"></span>
-            </h2>
             <CardStack 
               candidates={GIRLS} 
               currentIndex={girlIndex} 
@@ -181,8 +171,8 @@ function CardStack({
   theme: CategoryType
 }) {
   const isBoys = theme === 'boys';
-  const baseColor = isBoys ? 'from-blue-900/40 to-blue-950/90 border-blue-500/30' : 'from-pink-900/40 to-pink-950/90 border-pink-500/30';
-  const accentColor = isBoys ? 'text-blue-400' : 'text-pink-400';
+  const baseColor = isBoys ? 'from-white-900/40 to-white-950/90 border-white-500/30' : 'from-white-900/40 to-white-950/90 border-white-500/30';
+  const accentColor = isBoys ? 'text-white-400' : 'text-white-400';
 
   const nextCard = () => setIndex((currentIndex + 1) % candidates.length);
   const prevCard = () => setIndex((currentIndex - 1 + candidates.length) % candidates.length);
@@ -226,7 +216,7 @@ function CardStack({
               }}
             >
               {/* Photo Area */}
-              <div className="absolute inset-x-0 top-0 h-[75%] bg-black/50 overflow-hidden">
+              <div className="absolute inset-x-0 top-0 h-[100%] bg-black/50 overflow-hidden">
                 <img 
                   src={candidate.image} 
                   alt={candidate.name} 
@@ -238,7 +228,7 @@ function CardStack({
               </div>
 
               {/* Number Badge */}
-              <div className={`absolute top-4 left-4 backdrop-blur-md bg-black/40 px-3 py-1 rounded-full border border-white/10 text-sm font-serif font-bold ${accentColor}`}>
+              <div className={`absolute top-4 left-4 backdrop-blur-md bg-white/40 px-3 py-1 rounded-full border border-white/10 text-sm font-serif font-bold ${accentColor}`}>
                 No. {candidate.number}
               </div>
 
@@ -247,12 +237,6 @@ function CardStack({
                 <h3 className="text-2xl font-serif font-bold text-foreground truncate">
                   {candidate.name}
                 </h3>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-medium group-hover:text-primary transition-colors">
-                    Tap to Nominate
-                  </span>
-                  {isBoys ? <Star className="w-5 h-5 text-blue-500/50" /> : <Sparkles className="w-5 h-5 text-pink-500/50" />}
-                </div>
               </div>
             </motion.div>
           );
@@ -263,13 +247,13 @@ function CardStack({
       <div className="absolute -bottom-6 flex gap-4 z-40">
         <button 
           onClick={prevCard}
-          className="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors text-white hover:scale-110 active:scale-95"
+          className="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors text-black hover:scale-110 active:scale-95"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button 
           onClick={nextCard}
-          className="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors text-white hover:scale-110 active:scale-95"
+          className="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors text-black hover:scale-110 active:scale-95"
         >
           <ChevronRight className="w-6 h-6" />
         </button>
@@ -292,8 +276,8 @@ function ExpandedModal({
   const isBoys = candidate.gender === 'boys';
   const categories = CATEGORIES[candidate.gender];
   
-  const themeBase = isBoys ? 'from-blue-950/90 to-slate-900/95' : 'from-pink-950/90 to-slate-900/95';
-  const accentBorder = isBoys ? 'border-blue-500/30' : 'border-pink-500/30';
+  const themeBase = isBoys ? 'from-white-950/90 to-slate-900/95' : 'from-white-950/90 to-slate-900/95';
+  const accentBorder = isBoys ? 'border-white-500/30' : 'border-white-500/30';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -305,91 +289,74 @@ function ExpandedModal({
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       />
-
       {/* Modal Card */}
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className={`relative w-full max-w-md bg-gradient-to-b ${themeBase} border ${accentBorder} rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden z-10 flex flex-col max-h-[90vh]`}
-      >
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/80 hover:text-white hover:bg-black/60 transition-all border border-white/10"
-        >
-          <X className="w-5 h-5" />
-        </button>
+<motion.div
+  initial={{ scale: 0.95, opacity: 0, y: 20 }}
+  animate={{ scale: 1, opacity: 1, y: 0 }}
+  exit={{ scale: 0.95, opacity: 0, y: 20 }}
+  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+  className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-xl"
+>
 
-        {/* Big Photo Area */}
-        <div className="relative w-full aspect-[4/5] sm:aspect-square shrink-0">
-          <img 
-            src={candidate.image} 
-            alt={candidate.name} 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-          
-          <div className="absolute bottom-6 left-6 right-6">
-            <div className="inline-block px-3 py-1 rounded-full backdrop-blur-md bg-white/10 border border-white/20 text-sm font-serif font-bold text-white mb-2">
-              Candidate No. {candidate.number}
-            </div>
-            <h2 className="text-4xl font-serif font-bold text-white shadow-sm">
-              {candidate.name}
-            </h2>
-          </div>
+  {/* FULL IMAGE */}
+  <div className="relative w-full aspect-[3/4]">
+    <img
+      src={candidate.image}
+      alt={candidate.name}
+      className="w-full h-full object-cover"
+    />
+
+    {/* Stronger gradient for readability */}
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+    {/* CONTENT OVERLAY */}
+    <div className="absolute bottom-0 left-0 right-0 p-4 space-y-3 text-white">
+
+      {/* Name + number */}
+      <div>
+        <div className="inline-block px-2 py-0.5 rounded-full bg-white/20 backdrop-blur text-[10px] font-semibold mb-1">
+          No. {candidate.number}
         </div>
 
-        {/* Voting Actions Area */}
-        <div className="p-6 overflow-y-auto">
-          <h3 className="text-sm font-medium uppercase tracking-widest text-muted-foreground mb-4 text-center">
-            Select an Award
-          </h3>
-          
-          <div className="space-y-3">
-            {categories.map((cat) => {
-              const Icon = IconMap[cat.icon];
-              const isVotedForThis = votes[cat.id] === candidate.id;
-              const isVotedForOther = votes[cat.id] && votes[cat.id] !== candidate.id;
-              
-              let buttonStyle = "bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/50 text-white";
-              
-              if (isVotedForThis) {
-                buttonStyle = "gold-gradient-bg text-primary-foreground border-transparent font-bold shadow-[0_0_20px_rgba(212,175,55,0.3)]";
-              } else if (isVotedForOther) {
-                buttonStyle = "bg-black/30 border-white/5 text-white/30 cursor-not-allowed";
-              }
+        <h2 className="text-xl font-serif font-bold leading-tight">
+          {candidate.name}
+        </h2>
+      </div>
 
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => onVote(candidate, cat.id, cat.title)}
-                  disabled={isVotedForThis || !!isVotedForOther}
-                  className={`w-full relative flex items-center justify-between p-4 rounded-xl border backdrop-blur-md transition-all duration-300 ${buttonStyle}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-full ${isVotedForThis ? 'bg-primary-foreground/20' : 'bg-white/10'}`}>
-                      <Icon className={`w-5 h-5 ${isVotedForThis ? 'text-primary-foreground' : 'text-primary'}`} />
-                    </div>
-                    <span className="font-serif text-lg">{cat.title}</span>
-                  </div>
-                  
-                  {isVotedForThis && (
-                    <span className="text-xs uppercase tracking-wider font-bold opacity-80 flex items-center gap-1">
-                      Nominated
-                    </span>
-                  )}
-                  {isVotedForOther && (
-                    <span className="text-xs uppercase tracking-wider opacity-50">
-                      Already Voted
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </motion.div>
+      {/* BUTTONS OVER IMAGE */}
+      <div className="grid grid-cols-3 gap-3">
+        {categories.map((cat) => {
+          const Icon = IconMap[cat.icon];
+          const isVotedForThis = votes[cat.id] === candidate.id;
+          const isVotedForOther = votes[cat.id] && votes[cat.id] !== candidate.id;
+
+          let buttonStyle =
+            "bg-white/15 backdrop-blur border border-white/20 text-white hover:bg-white/25";
+
+          if (isVotedForThis) {
+            buttonStyle =
+              "bg-white text-primary border-transparent";
+          } else if (isVotedForOther) {
+            buttonStyle =
+              "bg-black/40 text-white/40 border-white/10 cursor-not-allowed";
+          }
+
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onVote(candidate, cat.id, cat.title)}
+              disabled={isVotedForThis || !!isVotedForOther}
+              className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-s font-medium transition ${buttonStyle}`}
+            >
+              <span className="truncate">{cat.title}</span>
+            </button>
+          );
+        })}
+      </div>
+
+    </div>
+  </div>
+</motion.div>
     </div>
   );
 }
