@@ -52,10 +52,10 @@ export default function Vote() {
     setTimeout(() => setShowConfetti(false), 2000);
 
     toast({
-      title: "Vote Cast! 🌟",
-      description: `You nominated ${candidate.name} for ${categoryTitle}`,
+      title: "Vote Completed!",
+      description: `You voted ${candidate.name} for ${categoryTitle}`,
       duration: 3000,
-      className: "bg-primary text-primary-foreground border-none font-serif text-lg",
+      className: "bg-cream text-primary border-none font-serif text-lg",
     });
 
     setTimeout(() => {
