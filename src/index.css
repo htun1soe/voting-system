@@ -187,7 +187,7 @@
 
 .glass-panel {
   background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(5px);
 
   border: 1px solid rgba(255, 255, 255, 0.8);
 
@@ -196,11 +196,11 @@
 }
 
 .gold-gradient-bg {
-  background: oklch(0.45 0.08 180 / 0.55);
+  background: oklch(37.383% 0.06658 180.015 / 0.73);
 }
 
 .gold-gradient-text {
-  background: oklch(0.45 0.08 180 / 0.55);
+  background: oklch(37.383% 0.06658 180.015 / 0.73);
 
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

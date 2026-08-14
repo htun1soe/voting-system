@@ -11,7 +11,7 @@ export default function Home() {
       {/* Abstract decorative elements */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/20 to-transparent opacity-50 blur-3xl pointer-events-none"></div>
       
-      <main className="container mx-auto px-6 py-12 md:py-24 relative z-10 max-w-4xl">
+      <main className="container mx-auto px-6 py-12 md:py-18 relative z-10 max-w-4xl">
         
         {/* Hero Section */}
         <motion.div 
@@ -25,7 +25,7 @@ export default function Home() {
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-            The night is yours. Crown the royalty of our class and celebrate the stars among us. Make your voice heard before the ceremony begins.
+            Let's vote your favorite candidates for the Fresher's Welcome event!
           </p>
         </motion.div>
 
@@ -36,7 +36,7 @@ export default function Home() {
           transition={{ duration: 0.6, delay: 0.7 }}
           className="text-center mb-10"
         >
-          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-5 rounded-full gold-gradient-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(212,175,55,0.4)] group">
+          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full gold-gradient-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all group">
             <span>Cast Vote</span>
             <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </Link>
@@ -102,7 +102,7 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">1</div>
                 <div>
                   <h3 className="font-medium text-lg mb-1 text-foreground">Browse the Candidates</h3>
-                  <p className="text-sm text-muted-foreground">Swipe through the elegant card stacks for Boys and Girls.</p>
+                  <p className="text-sm text-muted-foreground">Swipe through the card stacks for Boys and Girls.</p>
                 </div>
               </div>
               <div className="flex gap-4">
@@ -116,7 +116,7 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">3</div>
                 <div>
                   <h3 className="font-medium text-lg mb-1 text-foreground">Cast Your Vote</h3>
-                  <p className="text-sm text-muted-foreground">Tap the glowing title you wish to award them. Make it count!</p>
+                  <p className="text-sm text-muted-foreground">Tap the title you wish to vote for. Make it count!</p>
                 </div>
               </div>
             </div>

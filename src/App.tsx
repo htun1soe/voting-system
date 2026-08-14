@@ -28,6 +28,12 @@ function Navbar() {
             Home
           </Link>
           <Link
+            href="/"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Admin
+          </Link>
+          <Link
             href="/vote"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >

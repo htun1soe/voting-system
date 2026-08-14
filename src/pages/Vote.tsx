@@ -81,7 +81,7 @@ export default function Vote() {
           >
             Cast Your Votes
           </motion.h1>
-          <p className="text-muted-foreground mt-4 font-light text-lg">Tap a card to view and nominate.</p>
+          <p className="text-muted-foreground mt-4 font-light text-lg">Tap a card to view and vote.</p>
         </header>
 
         <div className="flex-1 grid md:grid-cols-2 gap-12 max-w-5xl mx-auto w-full">
