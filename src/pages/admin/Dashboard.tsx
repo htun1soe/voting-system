@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Vote, Clock, Users, Trophy, Activity, Calendar, Trash2 } from 'lucide-react';
+import { Plus, Vote, Clock, Users, Trophy, Activity, Calendar, Trash2, Timeline } from 'lucide-react';
 import { useStore } from '../../lib/store';
 import Layout from '../../layouts/AdminLayout';
 import StatCard from '../../components/ui/StatCard';
@@ -24,7 +24,7 @@ const Dashboard: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-24 h-24 rounded-3xl green-bg flex items-center justify-center shadow-2xl shadow-[hsl(265_85%_60%)]/40 mb-8"
+            className="w-20 h-20 rounded-3xl green-bg flex items-center justify-center mb-8"
           >
             <Vote className="w-12 h-12 text-white" />
           </motion.div>
@@ -34,9 +34,9 @@ const Dashboard: React.FC = () => {
           </p>
           <button
             onClick={() => setIsCreating(true)}
-            className="group relative px-8 py-4 rounded-2xl green-bg text-white font-bold text-lg hover:scale-105 transition-all flex items-center gap-3"
+            className="group relative px-5 py-2.5 rounded-xl green-bg text-white font-bold text-lg hover:scale-105 transition-all flex items-center gap-3"
           >
-            <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
             Create Your First Event
           </button>
         </div>

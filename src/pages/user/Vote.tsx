@@ -16,12 +16,30 @@ function useVotes() {
   });
 
   const castVote = (categoryId: string, candidateId: string) => {
-    const newVotes = { ...votes, [categoryId]: candidateId };
+    const newVotes = {
+      ...votes,
+      [categoryId]: candidateId,
+    };
+
     setVotes(newVotes);
-    localStorage.setItem('king-queen-votes', JSON.stringify(newVotes));
+
+    localStorage.setItem(
+      'king-queen-votes',
+      JSON.stringify(newVotes)
+    );
   };
 
-  return { votes, castVote };
+  const resetVotes = () => {
+    setVotes({});
+
+    localStorage.removeItem('king-queen-votes');
+  };
+
+  return {
+    votes,
+    castVote,
+    resetVotes,
+  };
 }
 
 // Map icon strings to actual Lucide components
@@ -31,10 +49,18 @@ const IconMap: Record<string, React.ElementType> = {
 
 export default function Vote() {
   const { toast } = useToast();
-  const { votes, castVote } = useVotes();
+  const { votes, castVote, resetVotes } = useVotes();
   
   const [expandedCandidate, setExpandedCandidate] = useState<Candidate | null>(null);
   
+  const [confirmation, setConfirmation] = useState<{
+      candidate: Candidate;
+      categoryId: string;
+      categoryTitle: string;
+  } | null>(null);
+
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
   // Stacks states - indexing the current top card
   const [boyIndex, setBoyIndex] = useState(0);
   const [girlIndex, setGirlIndex] = useState(0);
@@ -42,45 +68,62 @@ export default function Vote() {
   // Confetti state
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const handleVote = (candidate: Candidate, categoryId: string, categoryTitle: string) => {
-    if (votes[categoryId]) return; // Already voted
+const handleVote = (
+  candidate: Candidate,
+  categoryId: string,
+  categoryTitle: string
+) => {
+  // Category already has a vote
+  if (votes[categoryId]) {
+    return;
+  }
 
-    castVote(categoryId, candidate.id);
-    
-    // Trigger confetti
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 2000);
+  // Check whether this candidate has already been selected
+  const candidateAlreadyUsed = Object.values(votes).includes(candidate.id);
 
+  if (candidateAlreadyUsed) {
     toast({
-      title: "Vote Completed!",
-      description: `You voted ${candidate.name} for ${categoryTitle}`,
+      title: "Candidate Already Used",
+      description: `${candidate.name} has already been selected for another category.`,
       duration: 3000,
-      className: "bg-cream text-primary border-none font-serif text-lg",
     });
 
-    setTimeout(() => {
-      setExpandedCandidate(null);
-    }, 1500);
-  };
+    return;
+  }
+
+  // Don't vote yet.
+  // Just open the confirmation box.
+  setConfirmation({
+    candidate,
+    categoryId,
+    categoryTitle,
+  });
+};
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-12 pb-24">
-  
+      <div className="stars-bg"></div>
+      
       {/* Background ambient lights */}
-      <div className="absolute top-1/4 left-0 w-96 h-96 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute top-1/4 right-0 w-96 h-96 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/4 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/4 right-0 w-96 h-96 bg-pink-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10 h-full flex flex-col">
         
         <header className="text-center mb-8">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-serif font-bold green-text inline-block"
-          >
-            Cast Your Votes
-          </motion.h1>
-          <p className="text-muted-foreground mt-4 font-light text-lg">Tap a card to view and vote.</p>
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl md:text-5xl font-serif font-bold gold-gradient-text inline-block"
+            >
+              Cast Your Votes
+            </motion.h1>
+
+            <p className="text-muted-foreground mt-4 font-light text-lg">
+              Tap a card to view and vote.
+            </p>
+
+           
         </header>
 
         <div className="flex-1 grid md:grid-cols-2 gap-12 max-w-5xl mx-auto w-full">
@@ -106,6 +149,58 @@ export default function Vote() {
             />
           </div>
         </div>
+{/* Submit & Reset Buttons */}
+        <div className="flex justify-center items-center gap-4 mt-16">
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="px-6 py-3 rounded-lg border border-red-400/40 text-red-500 hover:bg-red-500/10 transition"
+          >
+            Reset
+          </button>
+
+          <button
+            onClick={() => {
+              // Extract all category objects dynamically from CATEGORIES
+              const allCategories = [...CATEGORIES.boys, ...CATEGORIES.girls];
+
+              // Check which categories are missing a vote
+              const missingCategories = allCategories.filter(
+                (cat) => !votes[cat.id]
+              );
+
+              if (missingCategories.length > 0) {
+                // Get the readable titles of missing categories
+                const missingTitles = missingCategories
+                  .map((cat) => cat.title)
+                  .join(', ');
+
+                toast({
+                  title: 'Incomplete Votes',
+                  description: `${missingTitles} are missing. Please vote again.`,
+                  variant: 'destructive',
+                  duration: 4000,
+                });
+                return;
+              }
+
+              // All 6 categories are voted
+              setShowConfetti(true);
+              setTimeout(() => setShowConfetti(false), 3000);
+
+              toast({
+                title: 'Success!',
+                description: 'You voted successfully, thank you for your support.',
+                duration: 4000,
+                className: 'bg-green-600 text-white font-serif text-lg border-none',
+              });
+
+              console.log('Submitted Votes:', votes);
+            }}
+            className="px-6 py-3 rounded-lg bg-primary text-white hover:opacity-90 transition shadow-md font-medium"
+          >
+            Submit
+          </button>
+        </div>
       </div>
 
       {/* Expanded Modal */}
@@ -117,6 +212,91 @@ export default function Vote() {
             onVote={handleVote}
             onClose={() => setExpandedCandidate(null)} 
           />
+        )}
+      </AnimatePresence>
+      
+      <AnimatePresence>
+        {confirmation && (
+          <ConfirmationModal
+            confirmation={confirmation}
+            onCancel={() => setConfirmation(null)}
+            onConfirm={() => {
+              castVote(
+                confirmation.categoryId,
+                confirmation.candidate.id
+              );
+
+              setConfirmation(null);
+              setShowConfetti(true);
+
+              setTimeout(() => {
+                setShowConfetti(false);
+              }, 2000);
+
+              toast({
+                title: "Vote Completed!",
+                description: `You voted ${confirmation.candidate.name} for ${confirmation.categoryTitle}`,
+                duration: 3000,
+                className:
+                  "bg-cream text-primary border-none font-serif text-lg",
+            });
+
+            setExpandedCandidate(null);
+          }}
+        />
+      )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showResetConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                Reset Votes?
+              </h2>
+
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to reset all your votes?
+              </p>
+
+              <div className="flex gap-3 justify-center">
+                
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                >
+                  No
+                </button>
+
+                <button
+                  onClick={() => {
+                    resetVotes();
+                    setShowResetConfirm(false);
+
+                    toast({
+                      title: "Votes Reset",
+                      description: "You can now choose your candidates again.",
+                      duration: 3000,
+                    });
+                  }}
+                  className="px-6 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                >
+                  Yes, Reset
+                </button>
+
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -327,7 +507,12 @@ function ExpandedModal({
         {categories.map((cat) => {
           const Icon = IconMap[cat.icon];
           const isVotedForThis = votes[cat.id] === candidate.id;
-          const isVotedForOther = votes[cat.id] && votes[cat.id] !== candidate.id;
+
+          const isCategoryAlreadyVoted =
+            !!votes[cat.id] && votes[cat.id] !== candidate.id;
+
+          const isCandidateAlreadyUsed =
+            Object.values(votes).includes(candidate.id);
 
           let buttonStyle =
             "bg-white/15 backdrop-blur border border-white/20 text-white hover:bg-white/25";
@@ -335,7 +520,10 @@ function ExpandedModal({
           if (isVotedForThis) {
             buttonStyle =
               "bg-white text-primary border-transparent";
-          } else if (isVotedForOther) {
+          } else if (
+            isCategoryAlreadyVoted ||
+            isCandidateAlreadyUsed
+          ) {
             buttonStyle =
               "bg-black/40 text-white/40 border-white/10 cursor-not-allowed";
           }
@@ -344,7 +532,11 @@ function ExpandedModal({
             <button
               key={cat.id}
               onClick={() => onVote(candidate, cat.id, cat.title)}
-              disabled={isVotedForThis || !!isVotedForOther}
+              disabled={
+                isVotedForThis ||
+                isCategoryAlreadyVoted ||
+                isCandidateAlreadyUsed
+              }
               className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-s font-medium transition ${buttonStyle}`}
             >
               <span className="truncate">{cat.title}</span>
@@ -356,6 +548,80 @@ function ExpandedModal({
     </div>
   </div>
 </motion.div>
+    </div>
+  );
+}
+
+function ConfirmationModal({
+  confirmation,
+  onCancel,
+  onConfirm,
+}: {
+  confirmation: {
+    candidate: Candidate;
+    categoryId: string;
+    categoryTitle: string;
+  };
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      
+      {/* Background */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onCancel}
+      />
+
+      {/* Confirmation Box */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ type: "spring", damping: 20 }}
+        className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-center"
+      >
+
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Confirm Your Vote
+        </h2>
+
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to vote{" "}
+          <strong>
+            No. {confirmation.candidate.number}
+          </strong>{" "}
+          for{" "}
+          <strong>
+            {confirmation.categoryTitle}
+          </strong>
+          ?
+        </p>
+
+        <div className="flex gap-3 justify-center">
+
+          {/* NO BUTTON */}
+          <button
+            onClick={onCancel}
+            className="px-6 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+          >
+            No
+          </button>
+
+          {/* YES BUTTON */}
+          <button
+            onClick={onConfirm}
+            className="px-6 py-2 rounded-lg bg-primary text-white hover:opacity-90 transition"
+          >
+            Yes
+          </button>
+
+        </div>
+      </motion.div>
     </div>
   );
 }

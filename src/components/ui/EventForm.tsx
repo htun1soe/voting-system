@@ -90,19 +90,6 @@ const EventForm: React.FC<EventFormProps> = ({ onSubmit, onCancel }) => {
             />
             {errors.girlTitle && <p className="text-xs text-destructive mt-1">{errors.girlTitle.message}</p>}
           </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-[hsl(265_30%_20%)] mb-2">Voting End Date</label>
-            <div className="relative">
-              <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(265_10%_50%)]" />
-              <input
-                type="datetime-local"
-                {...register('endDate')}
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] focus:ring-2 focus:ring-[hsl(265_85%_60%)]/50 outline-none transition-all"
-              />
-            </div>
-            {errors.endDate && <p className="text-xs text-destructive mt-1">{errors.endDate.message}</p>}
-          </div>
         </div>
 
         {/* Candidates Section */}
@@ -198,7 +185,7 @@ const EventForm: React.FC<EventFormProps> = ({ onSubmit, onCancel }) => {
           </button>
           <button
             type="submit"
-            className="px-8 py-3 rounded-xl green-bg text-white font-bold shadow-lg shadow-[hsl(265_85%_58%)]/30 hover:scale-[1.02] transition-all flex items-center gap-2"
+            className="px-8 py-3 rounded-xl green-bg text-white font-bold hover:scale-[1.02] transition-all flex items-center gap-2"
           >
             <Check className="w-5 h-5" />
             Launch Event
