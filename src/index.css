@@ -195,11 +195,11 @@
     0 10px 35px rgba(40, 84, 90, 0.08);
 }
 
-.gold-gradient-bg {
+.green-bg {
   background: oklch(37.383% 0.06658 180.015 / 0.73);
 }
 
-.gold-gradient-text {
+.green-text {
   background: oklch(37.383% 0.06658 180.015 / 0.73);
 
   -webkit-background-clip: text;

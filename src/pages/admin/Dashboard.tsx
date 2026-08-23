@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
           </p>
           <button
             onClick={() => setIsCreating(true)}
-            className="group relative px-8 py-4 rounded-2xl green-bg text-white font-bold text-lg shadow-xl shadow-[hsl(265_85%_58%)]/30 hover:scale-105 transition-all flex items-center gap-3"
+            className="group relative px-8 py-4 rounded-2xl green-bg text-white font-bold text-lg hover:scale-105 transition-all flex items-center gap-3"
           >
             <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
             Create Your First Event
@@ -116,7 +116,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-[hsl(265_85%_25%)] to-[hsl(280_80%_30%)] rounded-2xl p-6 text-white shadow-lg">
+          <div className="bg-gradient-to-br from-[hsl(265_85%_25%)] to-[hsl(280_80%_30%)] rounded-2xl p-6 text-white">
             <div className="flex items-center gap-2 mb-4">
               <Calendar className="w-5 h-5 text-[hsl(45_90%_65%)]" />
               <h3 className="font-serif font-bold text-lg">Event Schedule</h3>

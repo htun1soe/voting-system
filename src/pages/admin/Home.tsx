@@ -35,7 +35,7 @@ const Home: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="glass-panel rounded-2xl p-8 w-full max-w-md shadow-lg"
+          className="glass-panel rounded-2xl p-8 w-full max-w-md"
         >
           <div className="mb-8 text-center">
             <h2 className="font-serif font-bold text-3xl text-[hsl(265_30%_15%)] mb-2">Welcome Back</h2>
@@ -50,7 +50,7 @@ const Home: React.FC = () => {
                 <input
                   type="email"
                   {...register('email')}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(265_85%_60%)]/50 focus:border-[hsl(265_85%_60%)] outline-none transition-all text-[hsl(265_30%_15%)]"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(172_92%_15%)]/20 focus:border-[hsl(172_92%_15%)] outline-none transition-all text-[hsl(265_30%_15%)]"
                   placeholder="admin@university.edu"
                 />
               </div>
@@ -64,7 +64,7 @@ const Home: React.FC = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(265_85%_60%)]/50 focus:border-[hsl(265_85%_60%)] outline-none transition-all text-[hsl(265_30%_15%)]"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(172_92%_15%)]/20 focus:border-[hsl(172_92%_15%)] outline-none transition-all text-[hsl(265_30%_15%)]"
                   placeholder="••••••••"
                 />
               </div>
@@ -81,12 +81,12 @@ const Home: React.FC = () => {
                 />
                 <span className="text-[hsl(265_10%_45%)]">Show password</span>
               </label>
-              <a href="#" className="text-[hsl(265_85%_55%)] font-medium hover:underline">Forgot password?</a>
+              <a href="#" className="green-text font-medium hover:underline">Forgot password?</a>
             </div>
 
             <button
               type="submit"
-              className="w-full px-6 py-3.5 rounded-xl green-bg text-white font-semibold hover:scale-[1.02] transition-all shadow-lg shadow-[hsl(265_85%_58%)]/30 flex items-center justify-center gap-2"
+              className="w-full px-6 py-3.5 rounded-xl green-bg text-white font-semibold hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
             >
               Sign In to Dashboard
               <ArrowRight className="w-5 h-5" />

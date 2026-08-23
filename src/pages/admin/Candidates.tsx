@@ -58,7 +58,7 @@ const Candidates: React.FC = () => {
         </div>
         <button
           onClick={handleAdd}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl green-bg text-white font-semibold hover:scale-105 transition-all shadow-lg shadow-[hsl(265_85%_58%)]/30"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl green-bg text-white font-semibold hover:scale-105 transition-all"
         >
           <Plus className="w-5 h-5" />
           Add Candidate
@@ -110,7 +110,7 @@ const Candidates: React.FC = () => {
           </p>
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl green-bg text-white font-semibold hover:scale-105 transition-all shadow-lg shadow-[hsl(265_85%_58%)]/30"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl green-bg text-white font-semibold hover:scale-105 transition-all"
           >
             <Plus className="w-5 h-5" />
             Add Candidate

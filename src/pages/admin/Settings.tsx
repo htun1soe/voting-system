@@ -208,7 +208,7 @@ const Settings: React.FC = () => {
 
               <button
                 onClick={handleSaveAll}
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl green-bg text-white font-semibold hover:scale-[1.02] transition-all shadow-lg shadow-[hsl(265_85%_58%)]/30"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl green-bg text-white font-semibold hover:scale-[1.02] transition-all"
               >
                 <Save className="w-5 h-5" />
                 Save All Settings
@@ -220,7 +220,7 @@ const Settings: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-[hsl(265_85%_25%)] to-[hsl(280_80%_30%)] rounded-2xl p-6 text-white shadow-lg"
+            className="bg-gradient-to-br from-[hsl(265_85%_25%)] to-[hsl(280_80%_30%)] rounded-2xl p-6 text-white"
           >
             <h3 className="font-serif font-bold text-lg mb-2">Need Help?</h3>
             <p className="text-sm text-white/80 mb-4">

@@ -20,7 +20,7 @@ export default function Home() {
           className="text-center mb-10"
         >
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            Fresher's <span className="gold-gradient-text">Welcome</span>
+            Fresher's <span className="green-text">Welcome</span>
           </h1>
           
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
@@ -35,7 +35,7 @@ export default function Home() {
           transition={{ duration: 0.6, delay: 0.7 }}
           className="text-center mb-10"
         >
-          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full gold-gradient-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all group">
+          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full green-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all group">
             <span>Cast Vote</span>
             <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </Link>
@@ -98,21 +98,21 @@ export default function Home() {
             
             <div className="space-y-6">
               <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">1</div>
+                <div className="w-10 h-10 rounded-full green-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">1</div>
                 <div>
                   <h3 className="font-medium text-lg mb-1 text-foreground">Browse the Candidates</h3>
                   <p className="text-sm text-muted-foreground">Swipe through the card stacks for Boys and Girls.</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">2</div>
+                <div className="w-10 h-10 rounded-full green-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">2</div>
                 <div>
                   <h3 className="font-medium text-lg mb-1 text-foreground">Select a Profile</h3>
                   <p className="text-sm text-muted-foreground">Tap any candidate's card to view their full portrait and voting options.</p>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full gold-gradient-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">3</div>
+                <div className="w-10 h-10 rounded-full green-bg text-primary-foreground flex items-center justify-center font-bold font-serif shrink-0 shadow-lg">3</div>
                 <div>
                   <h3 className="font-medium text-lg mb-1 text-foreground">Cast Your Vote</h3>
                   <p className="text-sm text-muted-foreground">Tap the title you wish to vote for. Make it count!</p>

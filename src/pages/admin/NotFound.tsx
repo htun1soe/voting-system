@@ -11,7 +11,7 @@ const NotFound: React.FC = () => {
         <p className="text-[hsl(265_10%_45%)] mb-8">The page you're looking for doesn't exist or has been moved.</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl green-bg text-white font-semibold hover:scale-105 transition-all shadow-lg shadow-[hsl(265_85%_58%)]/30"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl green-bg text-white font-semibold hover:scale-105 transition-all"
         >
           <HomeIcon className="w-5 h-5" />
           Back to Home
