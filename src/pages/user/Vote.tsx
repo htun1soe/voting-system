@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Crown, Sparkles, Heart, Brain, Star, X } from 'lucide-react';
-import { BOYS, GIRLS, CATEGORIES, Candidate, CategoryType } from '../data/candidates';
+import { BOYS, GIRLS, CATEGORIES, Candidate, CategoryType } from '../../data/candidates';
 import { useToast } from '@/hooks/use-toast';
 
 // Local storage helper hooks
@@ -65,11 +65,10 @@ export default function Vote() {
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-12 pb-24">
-      <div className="stars-bg"></div>
-      
+  
       {/* Background ambient lights */}
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute top-1/4 right-0 w-96 h-96 bg-pink-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/4 left-0 w-96 h-96 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/4 right-0 w-96 h-96 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10 h-full flex flex-col">
         

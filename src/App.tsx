@@ -1,12 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
+import NotFound from "@/pages/user/not-found";
 import { Route, Switch, Router as WouterRouter, Link } from "wouter";
 import { Crown } from "lucide-react";
 
-import Home from "./pages/Home";
-import Vote from "./pages/Vote";
+import Home from "./pages/user/Home";
+import Vote from "./pages/user/Vote";
+import Admin from "./pages/admin/Home";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +29,7 @@ function Navbar() {
             Home
           </Link>
           <Link
-            href="/"
+            href="/admin"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Admin
@@ -52,6 +53,7 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/vote" component={Vote} />
         <Route component={NotFound} />
+        <Route path="/admin" component={Admin} />
       </Switch>
     </div>
   );
