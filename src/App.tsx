@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { StoreProvider } from "./lib/store"
 import NotFound from "@/pages/user/not-found";
 import { Route, Switch, Router as WouterRouter, Link } from "wouter";
 import { Crown } from "lucide-react";
@@ -52,8 +53,8 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/vote" component={Vote} />
+        <Route path="/admin" nest component={Admin} />
         <Route component={NotFound} />
-        <Route path="/admin" component={Admin} />
       </Switch>
     </div>
   );
@@ -62,13 +63,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Navbar />
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <StoreProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Navbar />
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </StoreProvider>
     </QueryClientProvider>
   );
 }

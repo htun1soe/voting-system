@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +15,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation(); 
   const { login } = useStore();
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -25,12 +25,12 @@ const Home: React.FC = () => {
   const onSubmit = (data: FormData) => {
     const success = login(data.email, data.password);
     if (success) {
-      navigate('/dashboard');
+      setLocation('/admin/dashboard'); 
     }
   };
 
   return (
-<div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
