@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Settings as SettingsIcon, Calendar, ToggleLeft, ToggleRight, Save, Clock, AlertTriangle, Crown } from 'lucide-react';
-import { useStore } from '../lib/store';
-import Layout from '../components/Layout';
-import { ALL_CATEGORIES, OPTIONAL_CATEGORIES } from '../lib/types';
-import type { Category } from '../lib/types';
+import { useStore } from '../../lib/store';
+import Layout from '../../layouts/AdminLayout';
+import { ALL_CATEGORIES, OPTIONAL_CATEGORIES } from '../../lib/types';
+import type { Category } from '../../lib/types';
 import { format } from 'date-fns';
 
 const Settings: React.FC = () => {

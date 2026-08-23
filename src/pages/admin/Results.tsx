@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Trophy, TrendingUp, Vote, Download } from 'lucide-react';
-import { useStore } from '../lib/store';
-import Layout from '../components/Layout';
-import type { Category } from '../lib/types';
+import { useStore } from '../../lib/store';
+import Layout from '../../layouts/AdminLayout';
+import type { Category } from '../../lib/types';
 
 const categoryColors: Record<string, string> = {
   'King': '#f59e0b',

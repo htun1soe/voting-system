@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+// 1. Updated import from react-router-dom to wouter
+import { Link, useLocation } from 'wouter'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Users, BarChart3, Settings, LogOut, Menu, X, Crown } from 'lucide-react';
 import { useStore } from '../lib/store';
 
+// 2. Updated paths to include the /admin prefix
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/candidates', label: 'Candidates', icon: Users },
-  { path: '/results', label: 'Results', icon: BarChart3 },
-  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/admin/candidates', label: 'Candidates', icon: Users },
+  { path: '/admin/results', label: 'Results', icon: BarChart3 },
+  { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation(); 
   const { admin, logout } = useStore();
 
   useEffect(() => {
@@ -28,22 +29,22 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
+  }, [location]);
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    setLocation('/'); 
   };
 
   return (
     <div className="min-h-screen flex bg-[hsl(260_30%_97%)]">
 
-      {/* Sidebar */}
+
       <aside
         className={`hidden md:flex flex-col h-screen sticky top-0 transition-all duration-300 border-r bg-white
         ${collapsed ? 'w-20' : 'w-64'}`}
       >
-        {/* Top */}
+
         <div className="flex items-center justify-between px-4 py-4">
           {!collapsed && (
             <div className="flex items-center gap-2.5">
@@ -65,12 +66,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {/* Nav */}
         <nav className="px-3 space-y-1 flex-1">
           {navItems.map(item => {
-            const active = location.pathname === item.path;
+            const active = location === item.path;
 
             return (
+
               <Link
                 key={item.path}
-                to={item.path}
+                href={item.path}
                 className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all
                 ${
                   active
@@ -85,7 +87,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           })}
         </nav>
 
-        {/* Bottom */}
         <div className="p-3 border-t border-[hsl(265_10%_92%)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -113,10 +114,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </aside>
 
-      {/* ================= MAIN AREA ================= */}
+
       <div className="flex-1 flex flex-col">
 
-        {/* HEADER (Mobile only now) */}
+
         <header className={`md:hidden sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 shadow-md backdrop-blur-md' : 'bg-white/60 backdrop-blur-sm'}`}>
           <div className="px-6">
             <div className="flex items-center justify-between h-16">
@@ -131,7 +132,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </div>
 
-          {/* Mobile dropdown (unchanged logic) */}
           <AnimatePresence>
             {mobileOpen && (
               <motion.div
@@ -142,12 +142,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               >
                 <nav className="px-6 py-4 space-y-1">
                   {navItems.map(item => {
-                    const active = location.pathname === item.path;
+                    const active = location === item.path;
 
                     return (
                       <Link
                         key={item.path}
-                        to={item.path}
+                        href={item.path}
                         className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
                         ${
                           active
@@ -166,12 +166,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </AnimatePresence>
         </header>
 
-        {/* CONTENT */}
+
         <main className="flex-1 px-6 lg:px-8 py-8">
           {children}
         </main>
 
-        {/* FOOTER */}
+
         <footer className="border-t bg-white">
           <div className="flex items-center justify-center px-6 py-6">
             <p className="text-sm text-[hsl(265_10%_50%)]">
@@ -182,6 +182,4 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
     </div>
   );
-};
-
-export default AdminLayout;
+}

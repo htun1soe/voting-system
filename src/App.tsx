@@ -1,14 +1,21 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { StoreProvider } from "./lib/store"
+import { StoreProvider } from "./lib/store";
 import NotFound from "@/pages/user/not-found";
 import { Route, Switch, Router as WouterRouter, Link } from "wouter";
 import { Crown } from "lucide-react";
 
+// User Pages
 import Home from "./pages/user/Home";
 import Vote from "./pages/user/Vote";
-import Admin from "./pages/admin/Home";
+
+// Admin Pages
+import AdminHome from "./pages/admin/Home";
+import Dashboard from "./pages/admin/Dashboard";
+import Candidates from "./pages/admin/Candidates";
+import Results from "./pages/admin/Results";
+import Settings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
@@ -51,9 +58,18 @@ function Router() {
   return (
     <div className="pt-16">
       <Switch>
+        {/* User Routes */}
         <Route path="/" component={Home} />
         <Route path="/vote" component={Vote} />
-        <Route path="/admin" nest component={Admin} />
+
+        {/* Admin Routes */}
+        <Route path="/admin" component={AdminHome} />
+        <Route path="/admin/dashboard" component={Dashboard} />
+        <Route path="/admin/candidates" component={Candidates} />
+        <Route path="/admin/results" component={Results} />
+        <Route path="/admin/settings" component={Settings} />
+
+        {/* Fallback Catch-All Route */}
         <Route component={NotFound} />
       </Switch>
     </div>
