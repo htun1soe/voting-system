@@ -112,21 +112,6 @@ const CandidateModal: React.FC<CandidateModalProps> = ({ open, onClose, onSave, 
                   </select>
                   {errors.category && <p className="text-xs text-[hsl(0_70%_50%)] mt-1">{errors.category.message}</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-[hsl(265_30%_20%)] mb-1.5">Year</label>
-                  <select
-                    {...register('year')}
-                    className="w-full px-4 py-2.5 rounded-lg border border-[hsl(265_10%_88%)] focus:ring-2 focus:ring-[hsl(265_85%_60%)]/50 focus:border-[hsl(265_85%_60%)] outline-none transition-all text-[hsl(265_30%_15%)] bg-white"
-                  >
-                    <option value="">Select year</option>
-                    <option value="Freshman">Freshman</option>
-                    <option value="Sophomore">Sophomore</option>
-                    <option value="Junior">Junior</option>
-                    <option value="Senior">Senior</option>
-                    <option value="Final Year">Final Year</option>
-                  </select>
-                  {errors.year && <p className="text-xs text-[hsl(0_70%_50%)] mt-1">{errors.year.message}</p>}
-                </div>
               </div>
 
               <div>

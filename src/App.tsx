@@ -9,6 +9,7 @@ import { Crown } from "lucide-react";
 // User Pages
 import Home from "./pages/user/Home";
 import Vote from "./pages/user/Vote";
+import VoteResult from "./pages/user/VoteResult";
 
 // Admin Pages
 import AdminHome from "./pages/admin/Home";
@@ -64,6 +65,7 @@ function Router() {
         {/* User Routes */}
         <Route path="/" component={Home} />
         <Route path="/vote" component={Vote} />
+        <Route path="/VoteResult" component={VoteResult} />
 
         {/* Admin Routes */}
         <Route path="/admin" component={AdminHome} />

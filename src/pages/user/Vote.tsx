@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Crown, Sparkles, Heart, Brain, Star, X } from 'lucide-react';
 import { BOYS, GIRLS, CATEGORIES, Candidate, CategoryType } from '../../data/candidates';
@@ -50,6 +51,7 @@ const IconMap: Record<string, React.ElementType> = {
 export default function Vote() {
   const { toast } = useToast();
   const { votes, castVote, resetVotes } = useVotes();
+  const [, setLocation] = useLocation();
   
   const [expandedCandidate, setExpandedCandidate] = useState<Candidate | null>(null);
   
@@ -160,18 +162,21 @@ const handleVote = (
 
           <button
             onClick={() => {
-              // Extract all category objects dynamically from CATEGORIES
-              const allCategories = [...CATEGORIES.boys, ...CATEGORIES.girls];
+              // Get all 6 voting categories
+              const allCategories = [
+                ...CATEGORIES.boys,
+                ...CATEGORIES.girls,
+              ];
 
-              // Check which categories are missing a vote
+              // Check whether every category has a vote
               const missingCategories = allCategories.filter(
-                (cat) => !votes[cat.id]
+                (category) => !votes[category.id]
               );
 
+              // If some categories are missing
               if (missingCategories.length > 0) {
-                // Get the readable titles of missing categories
                 const missingTitles = missingCategories
-                  .map((cat) => cat.title)
+                  .map((category) => category.title)
                   .join(', ');
 
                 toast({
@@ -180,21 +185,14 @@ const handleVote = (
                   variant: 'destructive',
                   duration: 4000,
                 });
+
                 return;
               }
 
-              // All 6 categories are voted
-              setShowConfetti(true);
-              setTimeout(() => setShowConfetti(false), 3000);
-
-              toast({
-                title: 'Success!',
-                description: 'You voted successfully, thank you for your support.',
-                duration: 4000,
-                className: 'bg-green-600 text-white font-serif text-lg border-none',
-              });
-
+              // All 6 categories have votes
               console.log('Submitted Votes:', votes);
+              // Go to the result page
+              setLocation("/VoteResult");
             }}
             className="px-6 py-3 rounded-lg bg-primary text-white hover:opacity-90 transition shadow-md font-medium"
           >

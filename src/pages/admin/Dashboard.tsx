@@ -47,9 +47,7 @@ const Dashboard: React.FC = () => {
   if (isCreating) {
     return (
       <Layout>
-        <div className="py-8">
           <EventForm onSubmit={handleCreateEvent} onCancel={() => setIsCreating(false)} />
-        </div>
       </Layout>
     );
   }
