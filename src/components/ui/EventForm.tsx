@@ -158,13 +158,13 @@ const EventForm: React.FC<EventFormProps> = ({ onSubmit, onCancel }) => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Photo URL</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Photo</label>
                     <div className="relative">
                       <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(265_10%_60%)]" />
                       <input
+                        type="file"
                         {...register(`candidates.${index}.photoUrl`)}
                         className="w-full pl-9 pr-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm outline-none focus:ring-2 focus:ring-[hsl(265_85%_60%)]/30"
-                        placeholder="https://..."
                       />
                     </div>
                   </div>

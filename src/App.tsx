@@ -17,6 +17,9 @@ import Candidates from "./pages/admin/Candidates";
 import Results from "./pages/admin/Results";
 import Settings from "./pages/admin/Settings";
 
+// Developer Pages
+import Developer from "./pages/developer/Developer";
+
 const queryClient = new QueryClient();
 
 function Navbar() {
@@ -68,6 +71,9 @@ function Router() {
         <Route path="/admin/candidates" component={Candidates} />
         <Route path="/admin/results" component={Results} />
         <Route path="/admin/settings" component={Settings} />
+
+        {/* Developer Routes */}
+        <Route path="/developer" component={Developer} />
 
         {/* Fallback Catch-All Route */}
         <Route component={NotFound} />

@@ -4,8 +4,7 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Crown, Mail, Lock, ArrowRight, Shield, BarChart3, Users, Clock } from 'lucide-react';
-import { useStore } from '../../lib/store';
+import { Mail, Lock, ArrowRight, Shield, Code } from 'lucide-react';
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -15,85 +14,258 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const Home: React.FC = () => {
-  const [, setLocation] = useLocation(); 
-  const { login } = useStore();
+  const [, setLocation] = useLocation();
+
   const [showPassword, setShowPassword] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const [role, setRole] = useState<'admin' | 'developer'>('admin');
+  const [serverError, setServerError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = (data: FormData) => {
-    const success = login(data.email, data.password);
-    if (success) {
-      setLocation('/admin/dashboard'); 
+  const onSubmit = async (data: FormData) => {
+    setLoading(true);
+    setServerError('');
+
+    try {
+      if (role === 'admin') {
+        const form = new FormData();
+
+        form.append('gmail', data.email);
+        form.append('password', data.password);
+
+        const response = await fetch('/api/admin/login', {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          setServerError(result.detail || 'Login failed');
+          return;
+        }
+
+        console.log('Admin logged in:');
+        setLocation('/admin/dashboard');
+        return;
+      }
+
+      const form = new FormData();
+
+      form.append('email', data.email);
+      form.append('password', data.password);
+
+      const response = await fetch('/api/developer/login', {
+        method: 'POST',
+        body: form,
+        credentials: 'include',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setServerError(result.detail || 'Login failed');
+        return;
+      }
+      console.log('Developer logged in');
+      setLocation('/developer');
+    } catch (error) {
+      console.error('Login error:', error);
+      setServerError('Unable to connect to the server.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="glass-panel rounded-2xl p-8 w-full max-w-md"
-        >
-          <div className="mb-8 text-center">
-            <h2 className="font-serif font-bold text-3xl text-[hsl(265_30%_15%)] mb-2">Welcome Back</h2>
-            <p className="text-[hsl(265_10%_45%)]">Sign in to manage your university voting system!</p>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="glass-panel rounded-2xl p-8 w-full max-w-md"
+      >
+        {/* HEADER */}
+
+        <div className="mb-7 text-center">
+          <div className="flex justify-center mb-4">
+            {role === 'admin' ? (
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[hsl(172_92%_15%)]/10">
+                <Shield className="w-7 h-7 text-[hsl(172_92%_15%)]" />
+              </div>
+            ) : (
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[hsl(265_85%_55%)]/10">
+                <Code className="w-7 h-7 text-[hsl(265_85%_55%)]" />
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-[hsl(265_30%_20%)] mb-1.5">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(265_10%_50%)] pointer-events-none" />
-                <input
-                  type="email"
-                  {...register('email')}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(172_92%_15%)]/20 focus:border-[hsl(172_92%_15%)] outline-none transition-all text-[hsl(265_30%_15%)]"
-                  placeholder="admin@university.edu"
-                />
-              </div>
-              {errors.email && <p className="text-xs text-[hsl(0_70%_50%)] mt-1.5">{errors.email.message}</p>}
+          <h2 className="font-serif font-bold text-3xl text-[hsl(265_30%_15%)] mb-2">
+            Welcome Back
+          </h2>
+
+          <p className="text-[hsl(265_10%_45%)]">
+            Sign in to continue to the dashboard
+          </p>
+        </div>
+
+        {/* ROLE TOGGLE */}
+
+        <div className="flex bg-[hsl(265_20%_95%)] rounded-xl p-1 mb-6">
+          <button
+            type="button"
+            onClick={() => {
+              setRole('admin');
+              setServerError('');
+            }}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              role === 'admin'
+                ? 'bg-white shadow text-[hsl(265_30%_15%)]'
+                : 'text-[hsl(265_10%_50%)]'
+            }`}
+          >
+            <Shield className="w-4 h-4" />
+            Admin
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setRole('developer');
+              setServerError('');
+            }}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              role === 'developer'
+                ? 'bg-white shadow text-[hsl(265_30%_15%)]'
+                : 'text-[hsl(265_10%_50%)]'
+            }`}
+          >
+            <Code className="w-4 h-4" />
+            Developer
+          </button>
+        </div>
+
+        {/* LOGIN FORM */}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+          {/* EMAIL */}
+
+          <div>
+            <label className="block text-sm font-medium text-[hsl(265_30%_20%)] mb-1.5">
+              {role === 'admin' ? 'Admin Email' : 'Developer Email'}
+            </label>
+
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(265_10%_50%)] pointer-events-none" />
+
+              <input
+                type="email"
+                {...register('email')}
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(172_92%_15%)]/20 focus:border-[hsl(172_92%_15%)] outline-none transition-all text-[hsl(265_30%_15%)]"
+                placeholder={
+                  role === 'admin'
+                    ? 'admin@university.edu'
+                    : 'developer@email.com'
+                }
+              />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[hsl(265_30%_20%)] mb-1.5">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(265_10%_50%)] pointer-events-none" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  {...register('password')}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(172_92%_15%)]/20 focus:border-[hsl(172_92%_15%)] outline-none transition-all text-[hsl(265_30%_15%)]"
-                  placeholder="••••••••"
-                />
-              </div>
-              {errors.password && <p className="text-xs text-[hsl(0_70%_50%)] mt-1.5">{errors.password.message}</p>}
+            {errors.email && (
+              <p className="text-xs text-[hsl(0_70%_50%)] mt-1.5">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          {/* PASSWORD */}
+
+          <div>
+            <label className="block text-sm font-medium text-[hsl(265_30%_20%)] mb-1.5">
+              Password
+            </label>
+
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(265_10%_50%)] pointer-events-none" />
+
+              <input
+                type={showPassword ? 'text' : 'password'}
+                {...register('password')}
+                className="w-full pl-11 pr-4 py-3 rounded-xl border border-[hsl(265_10%_88%)] bg-white focus:ring-2 focus:ring-[hsl(172_92%_15%)]/20 focus:border-[hsl(172_92%_15%)] outline-none transition-all text-[hsl(265_30%_15%)]"
+                placeholder="••••••••"
+              />
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showPassword}
-                  onChange={e => setShowPassword(e.target.checked)}
-                  className="w-4 h-4 rounded border-[hsl(265_10%_80%)] text-[hsl(265_85%_55%)] focus:ring-[hsl(265_85%_60%)]/50"
-                />
-                <span className="text-[hsl(265_10%_45%)]">Show password</span>
-              </label>
-              <a href="#" className="green-text font-medium hover:underline">Forgot password?</a>
-            </div>
+            {errors.password && (
+              <p className="text-xs text-[hsl(0_70%_50%)] mt-1.5">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
 
-            <button
-              type="submit"
-              className="w-full px-6 py-3.5 rounded-xl green-bg text-white font-semibold hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+          {/* SHOW PASSWORD */}
+
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+              className="w-4 h-4 rounded"
+            />
+
+            <span className="text-[hsl(265_10%_45%)]">
+              Show password
+            </span>
+          </label>
+
+          {/* SERVER ERROR */}
+
+          {serverError && (
+            <motion.p
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-[hsl(0_70%_50%)] text-center"
             >
-              Sign In to Dashboard
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </form>
-        </motion.div>
-      </div>
+              {serverError}
+            </motion.p>
+          )}
+
+          {/* LOGIN BUTTON */}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full px-6 py-3.5 rounded-xl green-bg text-white font-semibold hover:scale-[1.02] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+          >
+            {loading
+              ? 'Signing in...'
+              : role === 'admin'
+                ? 'Sign In as Admin'
+                : 'Sign In as Developer'}
+
+            {!loading && <ArrowRight className="w-5 h-5" />}
+          </button>
+        </form>
+
+        {/* ROLE DESCRIPTION */}
+
+        <div className="mt-6 text-center">
+          <p className="text-xs text-[hsl(265_10%_50%)]">
+            {role === 'admin'
+              ? 'Admin access allows candidate and event management.'
+              : 'Developer access allows major and account management.'}
+          </p>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

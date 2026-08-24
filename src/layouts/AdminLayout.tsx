@@ -41,17 +41,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
 
       <aside
-        className={`hidden md:flex flex-col h-screen sticky top-0 transition-all duration-300 border-r bg-white
+        className={`hidden md:flex flex-col h-screen sticky top-0 transition-all duration-200 border-r bg-white
         ${collapsed ? 'w-20' : 'w-64'}`}
       >
 
         <div className="flex items-center justify-between px-4 py-4">
           {!collapsed && (
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl green-bg flex items-center justify-center">
-                <Crown className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-[hsl(265_30%_20%)]">Voting</span>
+              <span className="font-bold text-[hsl(265_30%_20%)]">Admin Dashboard</span>
             </div>
           )}
 
@@ -121,7 +118,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <header className={`md:hidden sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 shadow-md backdrop-blur-md' : 'bg-white/60 backdrop-blur-sm'}`}>
           <div className="px-6">
             <div className="flex items-center justify-between h-16">
-              <span className="font-bold text-[hsl(265_30%_20%)]">Voting</span>
+              <span className="font-bold text-[hsl(265_30%_20%)]">Admin Dashboard</span>
 
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
