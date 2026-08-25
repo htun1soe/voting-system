@@ -14,9 +14,8 @@ import VoteResult from "./pages/user/VoteResult";
 // Admin Pages
 import AdminHome from "./pages/admin/Home";
 import Dashboard from "./pages/admin/Dashboard";
-import Candidates from "./pages/admin/Candidates";
+import Organizer from "./pages/admin/Organizer";
 import Results from "./pages/admin/Results";
-import Settings from "./pages/admin/Settings";
 
 // Developer Pages
 import Developer from "./pages/developer/Developer";
@@ -70,9 +69,8 @@ function Router() {
         {/* Admin Routes */}
         <Route path="/admin" component={AdminHome} />
         <Route path="/admin/dashboard" component={Dashboard} />
-        <Route path="/admin/candidates" component={Candidates} />
+        <Route path="/admin/organizer" component={Organizer} />
         <Route path="/admin/results" component={Results} />
-        <Route path="/admin/settings" component={Settings} />
 
         {/* Developer Routes */}
         <Route path="/developer" component={Developer} />

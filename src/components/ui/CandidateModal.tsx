@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, Upload, Check } from 'lucide-react';
-import type { Candidate, Category } from '../lib/types';
+import type { Candidate, Category } from '../../lib/types';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),

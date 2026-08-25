@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Edit2, Trash2, Vote } from 'lucide-react';
-import type { Candidate } from '../lib/types';
+import type { Candidate } from '../../lib/types';
 
 interface CandidateCardProps {
   candidate: Candidate;

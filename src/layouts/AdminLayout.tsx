@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 // 1. Updated import from react-router-dom to wouter
 import { Link, useLocation } from 'wouter'; 
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, BarChart3, Settings, LogOut, Menu, X, Crown } from 'lucide-react';
+import { LayoutDashboard, Users, BarChart3, LogOut, Menu, X, Crown } from 'lucide-react';
 import { useStore } from '../lib/store';
 
 // 2. Updated paths to include the /admin prefix
 const navItems = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/admin/candidates', label: 'Candidates', icon: Users },
+  { path: '/admin/organizer', label: 'Organizer', icon: Users },
   { path: '/admin/results', label: 'Results', icon: BarChart3 },
-  { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

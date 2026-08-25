@@ -124,10 +124,10 @@ const Developer: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-5xl mx-auto p-6 space-y-8"
+      className="max-w-lg mx-auto p-6 space-y-8"
     >
       <h1 className="text-3xl font-bold">Developer Dashboard</h1>
-
+      
       {/* ================= ADD MAJOR ================= */}
       <div className="bg-white rounded-2xl shadow p-6">
         <h2 className="text-xl font-bold mb-4">Add Major</h2>
