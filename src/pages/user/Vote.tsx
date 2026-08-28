@@ -88,48 +88,58 @@ export default function Vote() {
   };
 
   // API 2: Fetch Voter Ballot
+  const [qrAuthorized, setQrAuthorized] = useState<boolean | null>(null);
   const loadBallot = async () => {
-    try {
-      const response = await fetch("/api/voter/ballot", { credentials: "include" });
-      
-      if (response.status === 401) {
-        // Redirect or handle unauthenticated state safely
+  try {
+    const response = await fetch("http://localhost:8000/api/voter/ballot", {
+      credentials: "include",
+    });
+
+    if (response.status === 401) {
+      const err = await response.json();
+
+      // NO QR ACCESS
+      if (err.detail?.includes("QR")) {
+        setQrAuthorized(false);
         return;
       }
-
-      const data: APIBallot = await response.json();
-
-      if (!response.ok) {
-        toast({
-          title: "Error",
-          description: (data as any).detail || "Unable to load ballot",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setBallot(data);
-
-      // Reconstruct votes dictionary from backend response
-      const initialVotes: Record<string, string> = {};
-      
-      (data.boy_titles || []).forEach((t) => {
-        if (t.selected_candidate_id) {
-          initialVotes[`cat-${t.title_id}`] = `boy-${t.selected_candidate_id}`;
-        }
-      });
-
-      (data.girl_titles || []).forEach((t) => {
-        if (t.selected_candidate_id) {
-          initialVotes[`cat-${t.title_id}`] = `girl-${t.selected_candidate_id}`;
-        }
-      });
-
-      setVotes(initialVotes);
-    } catch (e) {
-      console.error("Failed to load ballot", e);
     }
-  };
+
+    if (!response.ok) {
+      const data = await response.json();
+      toast({
+        title: "Error",
+        description: data.detail || "Unable to load ballot",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data: APIBallot = await response.json();
+
+    setQrAuthorized(true); // ✅ QR valid
+    setBallot(data);
+
+    // keep your existing vote reconstruction
+    const initialVotes: Record<string, string> = {};
+
+    (data.boy_titles || []).forEach((t) => {
+      if (t.selected_candidate_id) {
+        initialVotes[`cat-${t.title_id}`] = `boy-${t.selected_candidate_id}`;
+      }
+    });
+
+    (data.girl_titles || []).forEach((t) => {
+      if (t.selected_candidate_id) {
+        initialVotes[`cat-${t.title_id}`] = `girl-${t.selected_candidate_id}`;
+      }
+    });
+
+    setVotes(initialVotes);
+  } catch (e) {
+    console.error("Failed to load ballot", e);
+  }
+};
 
   useEffect(() => {
     loadStatus();
@@ -256,6 +266,39 @@ export default function Vote() {
       categoryTitle,
     });
   };
+
+  if (qrAuthorized === false) {
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen flex items-center justify-center text-center px-6">
+        <div className="max-w-md">
+          <h1 className="text-3xl font-bold mb-4">
+            QR Access Required
+          </h1>
+          <p className="text-muted-foreground mb-6">
+            Please scan the official QR code to access the voting page.
+          </p>
+
+          <button
+            onClick={() => setLocation("/")}
+            className="px-6 py-3 bg-primary text-white rounded-lg"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+if (qrAuthorized === null) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p>Checking access...</p>
+    </div>
+  );
+}
 
   return (
     <>

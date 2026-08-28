@@ -25,7 +25,7 @@ function Navbar() {
             Admin
           </Link>
           <Link
-            href="/q/:public_id/:secret"
+            href="/vote"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Cast Vote

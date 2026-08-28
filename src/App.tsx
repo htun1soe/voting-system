@@ -5,7 +5,6 @@ import { StoreProvider } from "./lib/store";
 import NotFound from "@/pages/user/not-found";
 import { Route, Switch, Router as WouterRouter, Link } from "wouter";
 
-import Navbar from "./layouts/Layout";
 // User Pages
 import Home from "./pages/user/Home";
 import Vote from "./pages/user/Vote";
@@ -27,7 +26,7 @@ function Router() {
       <Switch>
         {/* User Routes */}
         <Route path="/" component={Home} />
-        <Route path="/q/:public_id/:secret" component={Vote} />
+        <Route path="/vote" component={Vote} />
         <Route path="/VoteResult" component={VoteResult} />
 
         {/* Admin Routes */}
