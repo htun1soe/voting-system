@@ -2,10 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import { CheckCircle2, ChevronRight } from 'lucide-react';
+import Navbar from '@/layouts/Layout';
 
 export default function Home() {
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <>
+    <Navbar />
+    <div className="min-h-screen relative overflow-hidden pt-16">
       
       {/* Abstract decorative elements */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/20 to-transparent opacity-50 blur-3xl pointer-events-none"></div>
@@ -124,5 +127,6 @@ export default function Home() {
 
       </main>
     </div>
+    </>
   );
 }

@@ -36,8 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen flex bg-[hsl(260_30%_97%)]">
-
+    <div className="min-h-screen flex --background">
 
       <aside
         className={`hidden md:flex flex-col h-screen sticky top-0 transition-all duration-200 border-r bg-white

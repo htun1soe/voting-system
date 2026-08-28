@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Crown, Sparkles, Heart, Brain, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Navbar from '@/layouts/Layout';
 
 // Interfaces matching API schemas from FastAPI endpoints
 interface APICandidate {
@@ -257,7 +258,9 @@ export default function Vote() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden pt-12 pb-24">
+    <>
+      <Navbar />
+      <div className="min-h-screen relative overflow-hidden pt-22 pb-24">
       
       {/* Background ambient lights */}
       <div className="absolute top-1/4 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -477,7 +480,8 @@ export default function Vote() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 }
 

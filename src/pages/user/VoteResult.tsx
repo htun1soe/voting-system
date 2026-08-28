@@ -1,6 +1,7 @@
 import React from 'react';
 import { Crown, CheckCircle } from 'lucide-react';
 import { BOYS, GIRLS, CATEGORIES } from '../../data/candidates';
+import Navbar from '@/layouts/Layout';
 
 type VoteRecord = Record<string, string>;
 
@@ -49,7 +50,9 @@ const getContestNumber = (
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-background">
+    <>
+      <Navbar />
+    <div className="min-h-screen flex items-center justify-center px-4 py-10 pt-22 bg-background">
       
       {/* Main Card */}
       <div className="w-full max-w-lg">
@@ -156,5 +159,6 @@ const getContestNumber = (
 
       </div>
     </div>
+    </>
   );
 }
