@@ -46,7 +46,7 @@ function Navbar() {
             Admin
           </Link>
           <Link
-            href="/vote"
+            href="/q/:public_id/:secret"
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Cast Vote
@@ -63,7 +63,7 @@ function Router() {
       <Switch>
         {/* User Routes */}
         <Route path="/" component={Home} />
-        <Route path="/vote" component={Vote} />
+        <Route path="/q/:public_id/:secret" component={Vote} />
         <Route path="/VoteResult" component={VoteResult} />
 
         {/* Admin Routes */}

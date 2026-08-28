@@ -35,7 +35,7 @@ export default function Home() {
           transition={{ duration: 0.6, delay: 0.7 }}
           className="text-center mb-10"
         >
-          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full green-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all group">
+          <Link href="/q/:hash" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full green-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all group">
             <span>Cast Vote</span>
             <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </Link>

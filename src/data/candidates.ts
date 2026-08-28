@@ -28,13 +28,13 @@ export const GIRLS: Candidate[] = [
 
 export const CATEGORIES = {
   boys: [
-    { id: 'king', title: 'King', icon: 'Crown' },
-    { id: 'smartest_boy', title: 'Smart', icon: 'Brain' },
-    { id: 'mr_popular', title: 'Mr. Popular', icon: 'Star' }
+    { id: 'king', title: 'King' },
+    { id: 'smartest_boy', title: 'Smart'},
+    { id: 'mr_popular', title: 'Mr. Popular' }
   ],
   girls: [
-    { id: 'queen', title: 'Queen', icon: 'Crown' },
-    { id: 'most_stylish', title: 'Style', icon: 'Sparkles' },
-    { id: 'ms_popular', title: 'Ms. Popular', icon: 'Heart' }
+    { id: 'queen', title: 'Queen' },
+    { id: 'most_stylish', title: 'Style' },
+    { id: 'ms_popular', title: 'Ms. Popular' }
   ]
 };
