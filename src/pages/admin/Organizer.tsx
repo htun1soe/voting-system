@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 import { Play, Square, QrCode, Download } from 'lucide-react';
 import Layout from '../../layouts/AdminLayout';
@@ -27,19 +28,9 @@ interface StatusData {
   };
 }
 
-interface Winner {
-  c_number: number;
-  c_name: string;
-  total_vote_weight: number;
-}
-
-interface WinnerTitle {
-  title: string;
-  total_vote_weight: number;
-  winners: Winner[];
-}
-
 const Organizer: React.FC = () => {
+  const [, setLocation] = useLocation();
+
   // State Management
   const [targets, setTargets] = useState<Target[]>([]);
   const [selectedTargetId, setSelectedTargetId] = useState<number | ''>('');
@@ -50,8 +41,6 @@ const Organizer: React.FC = () => {
   const [teachersInput, setTeachersInput] = useState<number>(5);
   const [qrMessage, setQrMessage] = useState<string>('Current QR counts will appear here.');
 
-  // Winners State
-  const [winners, setWinners] = useState<WinnerTitle[]>([]);
   const [festivalMessage, setFestivalMessage] = useState<string>('Use Start Event when candidates and QR codes are ready.');
 
   // Helper: Status Label
@@ -68,7 +57,7 @@ const Organizer: React.FC = () => {
       const data: TargetsData = await response.json();
 
       if (!response.ok) {
-        setFestivalMessage(data.targets ? 'Unable to load event options.' : 'Unable to load event options.');
+        setFestivalMessage('Unable to load event options.');
         return;
       }
 
@@ -107,8 +96,6 @@ const Organizer: React.FC = () => {
       } else {
         setFestivalMessage('This event has finished. Winners have been finalized.');
       }
-
-      await loadWinners(targetId);
     } catch (err) {
       console.error('Error refreshing status:', err);
     }
@@ -150,7 +137,8 @@ const Organizer: React.FC = () => {
     }
   };
 
-  // API Call: Stop Event
+  // API Call: Stop Event — navigates to the standalone results page once
+  // the event is successfully ended, instead of displaying winners inline.
   const handleStopFestival = async () => {
     if (!window.confirm('End this event and finalize winners?')) return;
     if (selectedTargetId === '') return;
@@ -171,9 +159,7 @@ const Organizer: React.FC = () => {
         return;
       }
 
-      setFestivalMessage(`${data.major} Event completed. Winners were finalized using total vote weight.`);
-      if (data.winners) setWinners(data.winners);
-      await refreshStatus(Number(selectedTargetId));
+      setLocation(`/organizer/results?target_id=${encodeURIComponent(selectedTargetId)}`);
     } catch (err) {
       setFestivalMessage('Event could not be ended.');
     }
@@ -223,25 +209,6 @@ const Organizer: React.FC = () => {
   const handleDownloadQR = (role: 'student' | 'teacher') => {
     if (selectedTargetId === '') return;
     window.location.href = `/api/organizer/download-qr/${role}?target_id=${encodeURIComponent(selectedTargetId)}`;
-  };
-
-  // API Call: Load Winners
-  const loadWinners = async (targetId: number) => {
-    try {
-      const response = await fetch(`/api/organizer/winners?target_id=${encodeURIComponent(targetId)}`, {
-        credentials: 'include',
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        setWinners([]);
-        return;
-      }
-
-      setWinners(data.titles || []);
-    } catch (err) {
-      console.error('Error loading winners:', err);
-    }
   };
 
   const studentsCount = Number(festivalStatus?.qr_counts?.students || 0);
@@ -300,6 +267,15 @@ const Organizer: React.FC = () => {
                 className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-800 text-white font-bold text-sm hover:bg-red-800 transition-all"
               >
                 <Square className="w-4 h-4" /> End Event
+              </button>
+            )}
+            {festivalStatus?.status === 2 && (
+              <button
+                type="button"
+                onClick={() => setLocation(`/admin/results?target_id=${encodeURIComponent(selectedTargetId)}`)}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[hsl(265_10%_88%)] text-sm font-semibold text-[hsl(265_10%_40%)] hover:bg-[hsl(265_20%_97%)] transition-all"
+              >
+                View Results
               </button>
             )}
           </div>

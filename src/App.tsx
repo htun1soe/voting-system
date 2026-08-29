@@ -14,16 +14,12 @@ import VoteResult from "./pages/user/VoteResult";
 import AdminHome from "./pages/admin/Home";
 import Dashboard from "./pages/admin/Dashboard";
 import Organizer from "./pages/admin/Organizer";
-import {WinnerDisplay} from "./pages/admin/Results";
+import Results from "./pages/admin/Results";
 
 // Developer Pages
 import Developer from "./pages/developer/Developer";
 
 const queryClient = new QueryClient();
-
-const WinnerDisplayRoute = () => (
-  <WinnerDisplay winners={[]} onRefresh={() => undefined} />
-);
 
 function Router() {
   return (
@@ -37,7 +33,7 @@ function Router() {
         <Route path="/admin" component={AdminHome} />
         <Route path="/admin/dashboard" component={Dashboard} />
         <Route path="/admin/organizer" component={Organizer} />
-        <Route path="/admin/results" component={WinnerDisplayRoute} />
+        <Route path="/admin/results" component={Results} />
 
         {/* Developer Routes */}
         <Route path="/developer" component={Developer} />

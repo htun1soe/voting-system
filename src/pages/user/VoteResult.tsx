@@ -1,53 +1,100 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'wouter';
 import { Crown, CheckCircle } from 'lucide-react';
-import { BOYS, GIRLS, CATEGORIES } from '../../data/candidates';
 import Navbar from '@/layouts/Layout';
 
-type VoteRecord = Record<string, string>;
+// Matches the documented `submitted_votes` shape returned by
+// GET /api/voter/ballot once `submitted: true`. Note: the backend docs do
+// not include a candidate photo field here — only title, candidate number,
+// name, and major — so this view can't show a portrait from real data.
+interface SubmittedVote {
+  title: string;
+  candidate_number: number;
+  candidate_name: string;
+  major?: string;
+}
+
+interface BallotResponse {
+  submitted?: boolean;
+  submitted_votes?: SubmittedVote[];
+  success?: boolean;
+  valid?: boolean;
+  detail?: string;
+}
 
 export default function VoteResult() {
-  // Get the votes that Vote.tsx saved in localStorage
-  const storedVotes = localStorage.getItem('king-queen-votes');
+  const [, setLocation] = useLocation();
+  const voterId = new URLSearchParams(window.location.search).get("voter_id");
 
-  let votes: VoteRecord = {};
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submittedVotes, setSubmittedVotes] = useState<SubmittedVote[]>([]);
 
-  try {
-    votes = storedVotes ? JSON.parse(storedVotes) : {};
-  } catch (error) {
-    console.error('Could not read votes:', error);
+  useEffect(() => {
+    if (!voterId) {
+      setError("Missing voter ID.");
+      setLoading(false);
+      return;
+    }
+
+    (async () => {
+      try {
+        const response = await fetch(
+          `/api/voter/ballot?voter_id=${encodeURIComponent(voterId)}`,
+          { credentials: "include" }
+        );
+
+        const data: BallotResponse = await response.json();
+
+        if (data.valid === false) {
+          setError(data.detail || "Your session is no longer valid.");
+          setLoading(false);
+          return;
+        }
+
+        if (!response.ok || data.success === false) {
+          setError(data.detail || "Unable to load your results.");
+          setLoading(false);
+          return;
+        }
+
+        if (!data.submitted) {
+          // Nothing submitted yet for this voter — nothing to show here.
+          setLocation(`/vote?voter_id=${encodeURIComponent(voterId)}`);
+          return;
+        }
+
+        setSubmittedVotes(data.submitted_votes || []);
+        setLoading(false);
+      } catch (e) {
+        console.error("Failed to load vote result", e);
+        setError("Network error while loading your results.");
+        setLoading(false);
+      }
+    })();
+  }, [voterId]);
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading your results...</p>
+        </div>
+      </>
+    );
   }
 
-  // Find the candidate using the candidate ID
-  const findCandidate = (candidateId: string) => {
-    return [...BOYS, ...GIRLS].find(
-      (candidate) => candidate.id === candidateId
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center text-center px-6">
+          <p className="text-muted-foreground">{error}</p>
+        </div>
+      </>
     );
-  };
-
-  // Get the real contest number
-  //
-  // Boys:
-  // 01 - 06
-  //
-  // Girls:
-  // 07 - 12
-  //
-  // If there are 10 boys:
-  // Boys = 01 - 10
-  // Girls = 11 - 20
-const getContestNumber = (
-  candidate: ReturnType<typeof findCandidate>
-) => {
-  if (!candidate) return '';
-
-  return candidate.number;
-};
-
-  // The order we want to display
-  const voteCategories = [
-    ...CATEGORIES.boys,
-    ...CATEGORIES.girls,
-  ];
+  }
 
   return (
     <>
@@ -87,60 +134,44 @@ const getContestNumber = (
 
           <div className="space-y-3">
 
-            {voteCategories.map((category) => {
-              const candidateId = votes[category.id];
+            {submittedVotes.map((vote) => (
+              <div
+                key={vote.title}
+                className="flex items-center justify-between gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100"
+              >
 
-              const candidate = candidateId
-                ? findCandidate(candidateId)
-                : undefined;
+                {/* Category */}
+                <div>
+                  <p className="text-sm text-gray-500">
+                    {vote.title}
+                  </p>
 
-              if (!candidate) {
-                return null;
-              }
+                  <p className="font-semibold text-gray-900">
+                    No. {vote.candidate_number}
+                  </p>
+                </div>
 
-              const contestNumber = getContestNumber(candidate);
+                {/* Candidate */}
+                <div className="flex items-center gap-3">
 
-              return (
-                <div
-                  key={category.id}
-                  className="flex items-center justify-between gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100"
-                >
-
-                  {/* Category */}
-                  <div>
-                    <p className="text-sm text-gray-500">
-                      {category.title}
-                    </p>
-
-                    <p className="font-semibold text-gray-900">
-                      No. {contestNumber}
-                    </p>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Crown className="w-5 h-5 text-primary" />
                   </div>
 
-                  {/* Candidate */}
-                  <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">
+                      {vote.candidate_name}
+                    </p>
 
-                    <img
-                      src={candidate.image}
-                      alt={candidate.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">
-                        {candidate.name}
-                      </p>
-
-                      <p className="text-xs text-gray-500">
-                        {category.title}
-                      </p>
-                    </div>
-
+                    <p className="text-xs text-gray-500">
+                      {vote.major || ''}
+                    </p>
                   </div>
 
                 </div>
-              );
-            })}
+
+              </div>
+            ))}
 
           </div>
 

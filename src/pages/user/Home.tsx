@@ -5,6 +5,9 @@ import { CheckCircle2, ChevronRight } from 'lucide-react';
 import Navbar from '@/layouts/Layout';
 
 export default function Home() {
+  const voterId = new URLSearchParams(window.location.search).get("voter_id");
+  const voteHref = voterId ? `/vote?voter_id=${encodeURIComponent(voterId)}` : "/vote";
+
   return (
     <>
     <Navbar />
@@ -38,7 +41,8 @@ export default function Home() {
           transition={{ duration: 0.6, delay: 0.7 }}
           className="text-center mb-10"
         >
-          <Link href="/vote" className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full green-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all group">
+          <Link href={voteHref} 
+          className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full green-bg text-primary-foreground font-bold text-xl hover:scale-105 active:scale-95 transition-all group">
             <span>Cast Vote</span>
             <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
           </Link>

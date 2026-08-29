@@ -1,6 +1,9 @@
 import { Crown } from "lucide-react";
 import { Link } from "wouter";
 
+const voterId = new URLSearchParams(window.location.search).get("voter_id");
+const voteHref = voterId ? `/vote?voter_id=${encodeURIComponent(voterId)}` : "/vote";
+
 function Navbar() {
   return (
     <nav className="fixed top-0 inset-x-0 z-50 glass-panel border-b-0 border-white/5">
@@ -25,7 +28,7 @@ function Navbar() {
             Admin
           </Link>
           <Link
-            href="/vote"
+            href={voteHref} 
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             Cast Vote

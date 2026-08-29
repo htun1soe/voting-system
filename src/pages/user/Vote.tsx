@@ -5,31 +5,37 @@ import { ChevronLeft, ChevronRight, Crown} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/layouts/Layout';
 
-// Interfaces matching API schemas from FastAPI endpoints
 interface APICandidate {
   c_id: number;
   c_number: number;
   c_name: string;
   c_photo?: string;
   major?: string;
+  c_gender: 'boy' | 'girl' | string;
 }
 
 interface APITitle {
   title_id: number;
   title: string;
-  group?: 'boy' | 'girl';
+  group: 'boy' | 'girl';
   selected_candidate_id?: number | null;
 }
 
-interface APIBallot {
-  festival_scope: 'major' | 'whole';
-  festival_year: number;
+interface APISubmittedVote {
+  title: string;
+  candidate_number: number;
+  candidate_name: string;
   major?: string;
-  boy_titles: APITitle[];
-  girl_titles: APITitle[];
-  boy_candidates: APICandidate[];
-  girl_candidates: APICandidate[];
-  used_candidate_ids?: number[];
+}
+
+interface APIBallot {
+  voter_id: string;
+  festival_target_id: number;
+  festival: string;
+  titles: APITitle[];
+  candidates: APICandidate[];
+  submitted?: boolean;
+  submitted_votes?: APISubmittedVote[];
 }
 
 // Internal structure mapped to maintain original UI styling
@@ -54,9 +60,11 @@ export default function Vote() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
+  const voterId = new URLSearchParams(window.location.search).get("voter_id");
+
   // API state
   const [ballot, setBallot] = useState<APIBallot | null>(null);
-  
+
   // Key-value mapping: `cat-${title_id}` -> `boy-${c_id}` or `girl-${c_id}`
   const [votes, setVotes] = useState<Record<string, string>>({});
 
@@ -78,68 +86,94 @@ export default function Vote() {
   // Confetti state
   const [showConfetti, setShowConfetti] = useState(false);
 
-  // API 1: Fetch Voting Status
+  // API 1: Poll voter session validity 
   const loadStatus = async () => {
+    if (!voterId) return;
+
     try {
-      await fetch("/api/voting/status", { credentials: "include" });
+      const response = await fetch(
+        `/api/voter/session?voter_id=${encodeURIComponent(voterId)}`,
+        { credentials: "include" }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || data.valid === false) {
+        setQrAuthorized(false);
+        return;
+      }
+
+      if (data.submitted && ballot && !ballot.submitted) {
+        await loadBallot();
+      }
     } catch (e) {
-      console.error("Status check failed", e);
+      console.error("Session check failed", e);
     }
   };
+
+  const draftKeyFor = (festivalTargetId: number, voter: string) =>
+    `qrVotingDraft:${festivalTargetId}:${voter}`;
 
   // API 2: Fetch Voter Ballot
   const [qrAuthorized, setQrAuthorized] = useState<boolean | null>(null);
   const loadBallot = async () => {
-  try {
-    const response = await fetch("http://localhost:8000/api/voter/ballot", {
-      credentials: "include",
-    });
+    if (!voterId) return;
 
-    if (response.status === 401) {
-      const err = await response.json();
+    try {
+      const response = await fetch(
+        `/api/voter/ballot?voter_id=${encodeURIComponent(voterId)}`,
+        { credentials: "include" }
+      );
 
-      // NO QR ACCESS
-      if (err.detail?.includes("QR")) {
+      const data: APIBallot & { success?: boolean; valid?: boolean; detail?: string } =
+        await response.json();
+
+      if (data.valid === false) {
         setQrAuthorized(false);
         return;
       }
-    }
 
-    if (!response.ok) {
-      const data = await response.json();
-      toast({
-        title: "Error",
-        description: data.detail || "Unable to load ballot",
-        variant: "destructive",
+      if (!response.ok || data.success === false) {
+        toast({
+          title: "Error",
+          description: data.detail || "Unable to load ballot",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setQrAuthorized(true);
+      setBallot(data);
+
+      const draftKey = draftKeyFor(data.festival_target_id, voterId);
+
+      let stored: Record<string, string> = {};
+      try {
+        stored = JSON.parse(localStorage.getItem(draftKey) || "{}");
+      } catch {}
+
+      const initialVotes: Record<string, string> = { ...stored };
+
+      if (data.submitted) {
+        localStorage.removeItem(draftKey);
+        setVotes({});
+        setLocation(`/VoteResult?voter_id=${encodeURIComponent(voterId)}`);
+        return;
+      }
+
+      data.titles.forEach((t) => {
+        const catKey = `cat-${t.title_id}`;
+        if (!initialVotes[catKey] && t.selected_candidate_id) {
+          initialVotes[catKey] = `${t.group}-${t.selected_candidate_id}`;
+        }
       });
-      return;
+
+      localStorage.setItem(draftKey, JSON.stringify(initialVotes));
+      setVotes(initialVotes);
+    } catch (e) {
+      console.error("Failed to load ballot", e);
     }
-
-    const data: APIBallot = await response.json();
-
-    setQrAuthorized(true); // ✅ QR valid
-    setBallot(data);
-
-    // keep your existing vote reconstruction
-    const initialVotes: Record<string, string> = {};
-
-    (data.boy_titles || []).forEach((t) => {
-      if (t.selected_candidate_id) {
-        initialVotes[`cat-${t.title_id}`] = `boy-${t.selected_candidate_id}`;
-      }
-    });
-
-    (data.girl_titles || []).forEach((t) => {
-      if (t.selected_candidate_id) {
-        initialVotes[`cat-${t.title_id}`] = `girl-${t.selected_candidate_id}`;
-      }
-    });
-
-    setVotes(initialVotes);
-  } catch (e) {
-    console.error("Failed to load ballot", e);
-  }
-};
+  };
 
   useEffect(() => {
     loadStatus();
@@ -149,93 +183,55 @@ export default function Vote() {
     return () => clearInterval(interval);
   }, []);
 
-  // Format API Candidates to UI Candidates
-  const BOYS: Candidate[] = (ballot?.boy_candidates || []).map((c) => ({
-    id: `boy-${c.c_id}`,
-    c_id: c.c_id,
-    number: c.c_number,
-    name: c.c_name,
-    image: c.c_photo || '',
-    gender: 'boys',
-    major: c.major,
-  }));
+  const BOYS: Candidate[] = (ballot?.candidates || [])
+    .filter((c) => c.c_gender === 'boy')
+    .map((c) => ({
+      id: `boy-${c.c_id}`,
+      c_id: c.c_id,
+      number: c.c_number,
+      name: c.c_name,
+      image: c.c_photo || '',
+      gender: 'boys',
+      major: c.major,
+    }));
 
-  const GIRLS: Candidate[] = (ballot?.girl_candidates || []).map((c) => ({
-    id: `girl-${c.c_id}`,
-    c_id: c.c_id,
-    number: c.c_number,
-    name: c.c_name,
-    image: c.c_photo || '',
-    gender: 'girls',
-    major: c.major,
-  }));
+  const GIRLS: Candidate[] = (ballot?.candidates || [])
+    .filter((c) => c.c_gender === 'girl')
+    .map((c) => ({
+      id: `girl-${c.c_id}`,
+      c_id: c.c_id,
+      number: c.c_number,
+      name: c.c_name,
+      image: c.c_photo || '',
+      gender: 'girls',
+      major: c.major,
+    }));
 
-  // Map API titles into dynamic UI CATEGORIES
   const CATEGORIES: Record<'boys' | 'girls', Category[]> = {
-    boys: (ballot?.boy_titles || []).map((t) => ({
-      id: `cat-${t.title_id}`,
-      title_id: t.title_id,
-      title: t.title,
-      icon: 'Crown',
-    })),
-    girls: (ballot?.girl_titles || []).map((t) => ({
-      id: `cat-${t.title_id}`,
-      title_id: t.title_id,
-      title: t.title,
-      icon: 'Crown',
-    })),
+    boys: (ballot?.titles || [])
+      .filter((t) => t.group === 'boy')
+      .map((t) => ({
+        id: `cat-${t.title_id}`,
+        title_id: t.title_id,
+        title: t.title,
+        icon: 'Crown',
+      })),
+    girls: (ballot?.titles || [])
+      .filter((t) => t.group === 'girl')
+      .map((t) => ({
+        id: `cat-${t.title_id}`,
+        title_id: t.title_id,
+        title: t.title,
+        icon: 'Crown',
+      })),
   };
 
-  // API 3: Cast Vote endpoint
-  const castVoteApi = async (titleId: number, candidateCId: number) => {
-    try {
-      const response = await fetch(`/api/voter/vote/${titleId}/${candidateCId}`, {
-        method: "POST",
-        credentials: "include"
-      });
+  useEffect(() => {
+    if (!ballot || !voterId) return;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast({
-          title: "Vote Failed",
-          description: data.detail || "Vote request failed",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      await loadBallot();
-      return true;
-    } catch (e) {
-      toast({
-        title: "Error",
-        description: "Network error submitting vote",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  // API 4: Reset / Cancel Votes endpoint
-  const resetVotesApi = async () => {
-    if (!ballot) return;
-    const allTitles = [...(ballot.boy_titles || []), ...(ballot.girl_titles || [])];
-    
-    for (const title of allTitles) {
-      if (title.selected_candidate_id) {
-        try {
-          await fetch(`/api/voter/vote/${title.title_id}`, {
-            method: "DELETE",
-            credentials: "include"
-          });
-        } catch (e) {
-          console.error("Cancel failed for title", title.title_id, e);
-        }
-      }
-    }
-    await loadBallot();
-  };
+    const draftKey = draftKeyFor(ballot.festival_target_id, voterId);
+    localStorage.setItem(draftKey, JSON.stringify(votes));
+  }, [votes]);
 
   const handleVote = (
     candidate: Candidate,
@@ -267,50 +263,99 @@ export default function Vote() {
     });
   };
 
-  if (qrAuthorized === false) {
-  return (
-    <>
-      <Navbar />
-      <div className="min-h-screen flex items-center justify-center text-center px-6">
-        <div className="max-w-md">
-          <h1 className="text-3xl font-bold mb-4">
-            QR Access Required
-          </h1>
-          <p className="text-muted-foreground mb-6">
-            Please scan the official QR code to access the voting page.
-          </p>
+  const submitBallot = async () => {
+    if (!ballot || !voterId) return;
 
-          <button
-            onClick={() => setLocation("/")}
-            className="px-6 py-3 bg-primary text-white rounded-lg"
-          >
-            Go Back
-          </button>
+    const selections = [
+      ...CATEGORIES.boys,
+      ...CATEGORIES.girls,
+    ].map((cat) => ({
+      title_id: cat.title_id,
+      candidate_id: Number(votes[cat.id]?.split("-")[1]),
+    }));
+
+    try {
+      const res = await fetch(
+        `/api/voter/submit?voter_id=${encodeURIComponent(voterId)}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ selections }),
+        }
+      );
+
+      const data: { ok?: boolean; submitted?: boolean; message?: string; detail?: string } =
+        await res.json();
+
+      if (!res.ok || data.ok !== true) {
+        toast({
+          title: "Submit Failed",
+          description: data.detail || "Your ballot was not submitted. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // clear draft
+      const draftKey = draftKeyFor(ballot.festival_target_id, voterId);
+      localStorage.removeItem(draftKey);
+
+      toast({
+        title: "Vote Submitted",
+        description: data.message || "Your vote is final",
+      });
+
+      await loadBallot();
+      setLocation(`/VoteResult?voter_id=${encodeURIComponent(voterId)}`);
+
+    } catch {
+      toast({
+        title: "Error",
+        description: "Network error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (qrAuthorized === null) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center text-center px-6">
+          <div className="max-w-md">
+            <h1 className="text-3xl font-bold mb-4">
+              QR Access Required
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              Please scan the official QR code to access the voting page.
+            </p>
+
+            <button
+              onClick={() => setLocation("/")}
+              className="px-6 py-3 bg-primary text-white rounded-lg"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
-      </div>
-    </>
-  );
-}
-
-if (qrAuthorized === null) {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p>Checking access...</p>
-    </div>
-  );
-}
+      </>
+    );
+  }
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen relative overflow-hidden pt-22 pb-24">
-      
+
       {/* Background ambient lights */}
       <div className="absolute top-1/4 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute top-1/4 right-0 w-96 h-96 bg-pink-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10 h-full flex flex-col">
-        
+
         <header className="text-center mb-8">
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
@@ -328,10 +373,10 @@ if (qrAuthorized === null) {
         <div className="flex-1 grid md:grid-cols-2 gap-12 max-w-5xl mx-auto w-full">
           {/* Boys Stack */}
           <div className="flex flex-col items-center">
-            <CardStack 
-              candidates={BOYS} 
-              currentIndex={boyIndex} 
-              setIndex={setBoyIndex} 
+            <CardStack
+              candidates={BOYS}
+              currentIndex={boyIndex}
+              setIndex={setBoyIndex}
               onExpand={setExpandedCandidate}
               theme="boys"
             />
@@ -339,10 +384,10 @@ if (qrAuthorized === null) {
 
           {/* Girls Stack */}
           <div className="flex flex-col items-center">
-            <CardStack 
-              candidates={GIRLS} 
-              currentIndex={girlIndex} 
-              setIndex={setGirlIndex} 
+            <CardStack
+              candidates={GIRLS}
+              currentIndex={girlIndex}
+              setIndex={setGirlIndex}
               onExpand={setExpandedCandidate}
               theme="girls"
             />
@@ -359,33 +404,7 @@ if (qrAuthorized === null) {
           </button>
 
           <button
-            onClick={() => {
-              const allCategories = [
-                ...CATEGORIES.boys,
-                ...CATEGORIES.girls,
-              ];
-
-              const missingCategories = allCategories.filter(
-                (category) => !votes[category.id]
-              );
-
-              if (missingCategories.length > 0) {
-                const missingTitles = missingCategories
-                  .map((category) => category.title)
-                  .join(', ');
-
-                toast({
-                  title: 'Incomplete Votes',
-                  description: `${missingTitles} missing. Please complete all category selections.`,
-                  variant: 'destructive',
-                  duration: 4000,
-                });
-
-                return;
-              }
-
-              setLocation("/VoteResult");
-            }}
+            onClick={submitBallot}
             className="px-6 py-3 rounded-lg bg-primary text-white hover:opacity-90 transition shadow-md font-medium"
           >
             Submit
@@ -396,45 +415,40 @@ if (qrAuthorized === null) {
       {/* Expanded Modal */}
       <AnimatePresence>
         {expandedCandidate && (
-          <ExpandedModal 
-            candidate={expandedCandidate} 
+          <ExpandedModal
+            candidate={expandedCandidate}
             categories={CATEGORIES[expandedCandidate.gender]}
             votes={votes}
             onVote={handleVote}
-            onClose={() => setExpandedCandidate(null)} 
+            onClose={() => setExpandedCandidate(null)}
           />
         )}
       </AnimatePresence>
-      
+
       {/* Confirmation Modal */}
       <AnimatePresence>
         {confirmation && (
           <ConfirmationModal
             confirmation={confirmation}
             onCancel={() => setConfirmation(null)}
-            onConfirm={async () => {
-              const success = await castVoteApi(
-                confirmation.titleId,
-                confirmation.candidate.c_id
-              );
+            onConfirm={() => {
+              setVotes((prev) => ({
+                ...prev,
+                [confirmation.categoryId]: confirmation.candidate.id,
+              }));
 
-              if (success) {
-                setConfirmation(null);
-                setShowConfetti(true);
+              setConfirmation(null);
+              setShowConfetti(true);
 
-                setTimeout(() => {
-                  setShowConfetti(false);
-                }, 2000);
+              setTimeout(() => setShowConfetti(false), 2000);
 
-                toast({
-                  title: "Vote Completed!",
-                  description: `You voted ${confirmation.candidate.name} for ${confirmation.categoryTitle}`,
-                  duration: 3000,
-                  className: "bg-cream text-primary border-none font-serif text-lg",
-                });
+              toast({
+                title: "Vote Selected",
+                description: `${confirmation.candidate.name} for ${confirmation.categoryTitle}`,
+                duration: 3000,
+              });
 
-                setExpandedCandidate(null);
-              }
+              setExpandedCandidate(null);
             }}
           />
         )}
@@ -473,7 +487,12 @@ if (qrAuthorized === null) {
 
                 <button
                   onClick={async () => {
-                    await resetVotesApi();
+                    setVotes({});
+
+                    if (ballot && voterId) {
+                      const draftKey = draftKeyFor(ballot.festival_target_id, voterId);
+                      localStorage.removeItem(draftKey);
+                    }
                     setShowResetConfirm(false);
 
                     toast({
@@ -495,7 +514,7 @@ if (qrAuthorized === null) {
       {/* Confetti Overlay */}
       <AnimatePresence>
         {showConfetti && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -504,13 +523,13 @@ if (qrAuthorized === null) {
             {Array.from({ length: 50 }).map((_, i) => (
               <motion.div
                 key={i}
-                initial={{ 
-                  scale: 0, 
-                  x: 0, 
+                initial={{
+                  scale: 0,
+                  x: 0,
                   y: 0,
                   rotate: 0
                 }}
-                animate={{ 
+                animate={{
                   scale: [0, 1, 0.5],
                   x: (Math.random() - 0.5) * window.innerWidth,
                   y: (Math.random() - 0.5) * window.innerHeight,
@@ -528,15 +547,15 @@ if (qrAuthorized === null) {
   );
 }
 
-function CardStack({ 
-  candidates, 
-  currentIndex, 
-  setIndex, 
+function CardStack({
+  candidates,
+  currentIndex,
+  setIndex,
   onExpand,
   theme
-}: { 
-  candidates: Candidate[], 
-  currentIndex: number, 
+}: {
+  candidates: Candidate[],
+  currentIndex: number,
   setIndex: (i: number) => void,
   onExpand: (c: Candidate) => void,
   theme: 'boys' | 'girls'
@@ -582,9 +601,9 @@ function CardStack({
               }}
             >
               <div className="absolute inset-x-0 top-0 h-[100%] bg-black/50 overflow-hidden">
-                <img 
-                  src={candidate.image} 
-                  alt={candidate.name} 
+                <img
+                  src={candidate.image}
+                  alt={candidate.name}
                   className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105"
                   draggable={false}
                 />
@@ -606,13 +625,13 @@ function CardStack({
       </AnimatePresence>
 
       <div className="absolute -bottom-6 flex gap-4 z-40">
-        <button 
+        <button
           onClick={prevCard}
           className="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors text-black hover:scale-110 active:scale-95"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
-        <button 
+        <button
           onClick={nextCard}
           className="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors text-black hover:scale-110 active:scale-95"
         >
@@ -623,14 +642,14 @@ function CardStack({
   );
 }
 
-function ExpandedModal({ 
-  candidate, 
+function ExpandedModal({
+  candidate,
   categories,
   onClose,
   votes,
   onVote
-}: { 
-  candidate: Candidate, 
+}: {
+  candidate: Candidate,
   categories: Category[],
   onClose: () => void,
   votes: Record<string, string>,
@@ -638,14 +657,14 @@ function ExpandedModal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
