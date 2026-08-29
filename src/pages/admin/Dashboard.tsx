@@ -2,871 +2,708 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  Plus,
-  Trash2,
-  Edit2,
-  RefreshCw,
-  Lock,
-  Layers,
-  Award,
-  Filter,
-  X,
-  Check,
-  User,
-  Hash,
-  Upload
+import { 
+  Plus, 
+  Trash2, 
+  Edit2, 
+  RefreshCw, 
+  Lock, 
+  Layers, 
+  Award, 
+  Filter, 
+  X, 
+  Check, 
+  User, 
+  Hash, 
+  Upload 
 } from 'lucide-react';
+import Layout from '@/layouts/AdminLayout';
 import { motion } from 'framer-motion';
-import Layout from '../../layouts/AdminLayout';
 
 // --- ZOD SCHEMAS ---
 
 const candidateFormSchema = z.object({
   c_name: z.string().min(1, 'Candidate name is required'),
-  candidate_type: z.enum(['new', 'old']),
-  c_number: z.string().optional(),
+  c_number: z.string().min(1, 'Candidate number is required'),
   c_gender: z.enum(['boy', 'girl']),
-  history_scope: z.enum(['major', 'whole']).optional(),
-  year: z.string().optional(),
-  title_id: z.string().optional(),
   c_photo: z.any().refine((files) => files && files.length > 0, 'Photo is required')
 });
 
 const editFormSchema = z.object({
   c_name: z.string().min(1, 'Candidate name is required'),
   c_number: z.string().min(1, 'Candidate number is required'),
-  c_gender: z.enum(['boy', 'girl']),
+  c_gender: z.enum(['boy', 'girl']).optional(),
   c_photo: z.any().optional()
 });
 
 const wholeEditFormSchema = z.object({
-  c_number: z.string().min(1, 'Candidate number is required'),
-  c_photo: z.any().optional()
+  c_w_number: z.string().min(1, 'Candidate number is required')
+});
+
+const titleFormSchema = z.object({
+  title: z.string().min(1, 'Title name is required'),
+  group: z.enum(['boy', 'girl'])
 });
 
 type CandidateFormData = z.infer<typeof candidateFormSchema>;
 type EditFormData = z.infer<typeof editFormSchema>;
 type WholeEditFormData = z.infer<typeof wholeEditFormSchema>;
+type TitleFormData = z.infer<typeof titleFormSchema>;
 
 export default function AdminDashboard() {
-  // Mode & State
-  const [adminMode, setAdminMode] = useState<'major' | 'whole'>('major');
+  // Session & Identity States
+  const [me, setMe] = useState<any>(null);
+  const [candidateManagementLocked, setCandidateManagementLocked] = useState(false);
+  const [candidateStatusMsg, setCandidateStatusMsg] = useState('Loading candidate management status...');
   
-  // Major Mode States
-  const [majorStatus, setMajorStatus] = useState<{ status_label?: string; candidate_management_locked?: boolean }>({});
+  // Data Lists & Editing States
   const [candidates, setCandidates] = useState<any[]>([]);
-  const [candidateYears, setCandidateYears] = useState<string[]>([]);
-  const [historyScope, setHistoryScope] = useState<'major' | 'whole'>('major');
-  const [yearFilter, setYearFilter] = useState<string>('');
-  const [editingCandidate, setEditingCandidate] = useState<any | null>(null);
+  const [editingCandidateId, setEditingCandidateId] = useState<number | null>(null);
+  
+  const [combinedFestivals, setCombinedFestivals] = useState<any[]>([]);
+  const [combineRequests, setCombineRequests] = useState<any[]>([]);
+  const [combinedCandidates, setCombinedCandidates] = useState<any[]>([]);
+  const [isCombineEditorOpen, setIsCombineEditorOpen] = useState(false);
+  const [editingCombinedId, setEditingCombinedId] = useState<number | null>(null);
+  const [availableMajors, setAvailableMajors] = useState<any[]>([]);
+  const [selectedMajorIds, setSelectedMajorIds] = useState<number[]>([]);
+  const [combinedName, setCombinedName] = useState('');
 
-  // Whole Mode States
-  const [wholeStatus, setWholeStatus] = useState<{ status_label?: string; candidate_management_locked?: boolean }>({});
+  const [titles, setTitles] = useState<any[]>([]);
+  const [titlesLocked, setTitlesLocked] = useState(false);
+  const [titleStatusMsg, setTitleStatusMsg] = useState('');
+
   const [wholeCandidates, setWholeCandidates] = useState<any[]>([]);
-  const [wholeYear, setWholeYear] = useState<number | null>(null);
-  const [wholeError, setWholeError] = useState<{ detail?: string; missing_majors?: string[] } | null>(null);
-  const [availableCandidates, setAvailableCandidates] = useState<any[]>([]);
-  const [showAvailablePanel, setShowAvailablePanel] = useState(false);
-  const [availableError, setAvailableError] = useState<string | null>(null);
-  const [editingWholeCandidate, setEditingWholeCandidate] = useState<any | null>(null);
+  const [wholeReady, setWholeReady] = useState(true);
+  const [wholeMissingMajors, setWholeMissingMajors] = useState<string[]>([]);
+  const [availableWholeCandidates, setAvailableWholeCandidates] = useState<any[]>([]);
 
-  // --- REACT HOOK FORM INSTANCES ---
+  // React Hook Forms
+  const candidateForm = useForm<CandidateFormData>({ resolver: zodResolver(candidateFormSchema) });
+  const editCandidateForm = useForm<EditFormData>({ resolver: zodResolver(editFormSchema) });
+  const titleForm = useForm<TitleFormData>({ resolver: zodResolver(titleFormSchema) });
 
-  const addForm = useForm<CandidateFormData>({
-    resolver: zodResolver(candidateFormSchema),
-    defaultValues: {
-      candidate_type: 'new',
-      c_gender: 'boy',
-      history_scope: 'major'
-    }
-  });
-
-  const editForm = useForm<EditFormData>({
-    resolver: zodResolver(editFormSchema)
-  });
-
-  const wholeEditForm = useForm<WholeEditFormData>({
-    resolver: zodResolver(wholeEditFormSchema)
-  });
-
-  const candidateType = addForm.watch('candidate_type');
-  const candidateGender = addForm.watch('c_gender');
-
-  // --- API FETCH LOGIC ---
-
-  const loadAdminMajorStatus = async () => {
-    const res = await fetch('/api/admin/major-status', { credentials: 'include' });
-    if (!res.ok) return;
-    const data = await res.json();
-    setMajorStatus(data);
-  };
-
-  const loadCandidateYears = async (scope = historyScope) => {
-    const res = await fetch(`/api/admin/candidate-years?history_scope=${encodeURIComponent(scope)}`, {
-      credentials: 'include'
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    setCandidateYears(data.years || []);
-  };
-
-  const loadMajorCandidates = async () => {
-    const params = new URLSearchParams();
-    params.set('history_scope', historyScope);
-    if (yearFilter) params.set('year', yearFilter);
-
-    const res = await fetch(`/api/admin/candidates?${params.toString()}`, { credentials: 'include' });
-    const data = await res.json();
-    if (res.ok) {
-      setCandidates(data);
-    } else {
-      setCandidates([]);
-    }
-  };
-
-  const loadWholeFestivalStatus = async () => {
-    const res = await fetch('/api/admin/whole-status', { credentials: 'include' });
-    if (!res.ok) return;
-    const data = await res.json();
-    setWholeStatus(data);
-  };
-
-  const loadWholeCandidates = async () => {
-    setWholeError(null);
-    const res = await fetch('/api/admin/whole-candidates', { credentials: 'include' });
-    const data = await res.json();
-
-    if (res.status === 409) {
-      setWholeError(data);
-      setWholeCandidates([]);
-      return;
-    }
-    if (!res.ok) {
-      setWholeError({ detail: data.detail || 'Unable to load candidates' });
-      setWholeCandidates([]);
-      return;
-    }
-
-    setWholeCandidates(data.candidates || []);
-    setWholeYear(data.year);
-  };
-
-  const openAvailableCandidates = async () => {
-    if (wholeStatus.candidate_management_locked) {
-      alert('Whole candidate management is locked while the Whole festival is running.');
-      return;
-    }
-    setShowAvailablePanel(true);
-    setAvailableError(null);
-
-    const res = await fetch('/api/admin/whole-candidates/available', { credentials: 'include' });
-    const data = await res.json();
-
-    if (res.status === 409) {
-      setAvailableError('All Major selections must be completed first.');
-      setAvailableCandidates([]);
-      return;
-    }
-    if (!res.ok) {
-      setAvailableError(data.detail || 'Unable to load available candidates');
-      setAvailableCandidates([]);
-      return;
-    }
-
-    setAvailableCandidates(data.available_candidates || []);
-  };
-
-  // Switch tabs/modes
+  // --- INITIALIZATION & SESSION RESTORE ---
   useEffect(() => {
-    if (adminMode === 'major') {
-      loadAdminMajorStatus();
-      loadCandidateYears();
-      loadMajorCandidates();
-    } else {
-      loadWholeFestivalStatus();
-      loadWholeCandidates();
+    restoreSession();
+  }, []);
+
+  const restoreSession = async () => {
+    try {
+      const res = await fetch('/api/admin/me', { credentials: 'include' });
+      if (!res.ok) return;
+      const data = await res.json();
+      applyAdminSession(data);
+    } catch (err) {
+      console.error(err);
     }
-  }, [adminMode, historyScope, yearFilter]);
+  };
 
-  // --- ACTIONS ---
+  const applyAdminSession = (data: any) => {
+    setMe(data);
+    if (data.admin_role === 'major_admin') {
+      loadCandidateManagementStatus().then(loadCandidates);
+      loadCombinedFestivals();
+      loadCombinedCandidates();
+      loadTitles();
+    } else if (data.admin_role === 'whole_admin') {
+      loadWhole();
+      loadAvailableWhole();
+    }
+  };
 
-  const onAddCandidate = async (data: CandidateFormData) => {
-    if (majorStatus.candidate_management_locked) {
-      alert('Candidate management is locked while this major festival is running.');
+  // --- MAJOR ADMIN API CALLS ---
+
+  const loadCandidateManagementStatus = async () => {
+    const res = await fetch('/api/admin/candidate-management-status', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    setCandidateManagementLocked(Boolean(data.locked));
+    setCandidateStatusMsg(data.message);
+  };
+
+  const loadCandidates = async () => {
+    const res = await fetch('/api/admin/candidates', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    setCandidates(data);
+  };
+
+  const handleAddCandidate = async (formData: CandidateFormData) => {
+    if (candidateManagementLocked) {
+      alert('Candidate management is locked.');
       return;
     }
-
-    const formData = new FormData();
-    formData.append('c_name', data.c_name);
-    formData.append('candidate_type', data.candidate_type);
-    formData.append('c_gender', data.c_gender);
-    if (data.c_photo && data.c_photo[0]) {
-      formData.append('c_photo', data.c_photo[0]);
-    }
-
-    if (data.candidate_type === 'old') {
-      if (data.history_scope) formData.append('history_scope', data.history_scope);
-      if (data.year) formData.append('year', data.year);
-      if (data.title_id) formData.append('title_id', data.title_id);
-    } else {
-      if (data.c_number) formData.append('c_number', data.c_number);
+    const form = new FormData();
+    form.append('c_name', formData.c_name);
+    form.append('c_number', formData.c_number);
+    form.append('c_gender', formData.c_gender);
+    if (formData.c_photo?.[0]) {
+      form.append('c_photo', formData.c_photo[0]);
     }
 
     const res = await fetch('/api/admin/candidates', {
       method: 'POST',
-      body: formData,
+      body: form,
       credentials: 'include'
     });
-    const resData = await res.json();
-
+    const data = await res.json();
     if (!res.ok) {
-      alert(resData.detail || 'Candidate could not be added');
+      alert(data.detail);
       return;
     }
-
-    addForm.reset();
-    setHistoryScope(data.candidate_type === 'old' ? data.history_scope || 'major' : 'major');
-    await loadCandidateYears();
-    await loadMajorCandidates();
+    candidateForm.reset();
+    loadCandidates();
   };
 
-  const startEdit = (candidate: any) => {
-    if (majorStatus.candidate_management_locked) {
-      alert('Candidate editing is locked while this major festival is running.');
+  const startCandidateEdit = (id: number) => {
+    if (candidateManagementLocked) {
+      alert('Candidate management is locked.');
       return;
     }
-    setEditingCandidate(candidate);
-    editForm.reset({
-      c_name: candidate.c_name,
-      c_number: String(candidate.c_number),
-      c_gender: candidate.c_gender
-    });
+    const candidate = candidates.find(item => item.c_id === id);
+    if (!candidate) return;
+
+    setEditingCandidateId(id);
+    editCandidateForm.setValue('c_name', candidate.c_name);
+    editCandidateForm.setValue('c_number', String(candidate.c_number));
   };
 
-  const onUpdateCandidate = async (data: EditFormData) => {
-    if (!editingCandidate) return;
+  const cancelCandidateEdit = () => {
+    setEditingCandidateId(null);
+    editCandidateForm.reset();
+  };
 
-    const formData = new FormData();
-    formData.append('c_name', data.c_name);
-    formData.append('c_number', data.c_number);
-    formData.append('c_gender', data.c_gender);
-    if (data.c_photo && data.c_photo[0]) {
-      formData.append('c_photo', data.c_photo[0]);
+  const handleUpdateCandidate = async (formData: EditFormData) => {
+    if (editingCandidateId === null || candidateManagementLocked) return;
+
+    const form = new FormData();
+    form.append('c_name', formData.c_name);
+    form.append('c_number', formData.c_number);
+    if (formData.c_photo?.[0]) {
+      form.append('c_photo', formData.c_photo[0]);
     }
 
-    const res = await fetch(`/api/admin/candidates/${editingCandidate.c_id}`, {
+    const res = await fetch(`/api/admin/candidates/${editingCandidateId}`, {
       method: 'PUT',
-      body: formData,
+      body: form,
       credentials: 'include'
     });
-    const resData = await res.json();
-
+    const data = await res.json();
     if (!res.ok) {
-      alert(resData.detail || 'Update failed');
+      alert(data.detail);
       return;
     }
 
-    setEditingCandidate(null);
-    loadMajorCandidates();
+    cancelCandidateEdit();
+    await loadCandidateManagementStatus();
+    await loadCandidates();
   };
 
-  const deleteCandidate = async (candidateId: number) => {
-    if (majorStatus.candidate_management_locked) {
-      alert('Candidate deleting is locked while this major festival is running.');
+  const deleteCandidate = async (id: number) => {
+    if (candidateManagementLocked) {
+      alert('Candidate management is locked.');
       return;
     }
-    if (!confirm('Delete this candidate and related selection history?')) return;
+    if (!confirm('Delete this candidate?')) return;
 
-    const res = await fetch(`/api/admin/candidates/${candidateId}`, {
+    const res = await fetch(`/api/admin/candidates/${id}`, {
       method: 'DELETE',
       credentials: 'include'
     });
     const data = await res.json();
+    if (!res.ok) alert(data.detail);
 
+    await loadCandidateManagementStatus();
+    await loadCandidates();
+  };
+
+  // --- COMBINE FESTIVALS LOGIC ---
+
+  const loadCombinedFestivals = async () => {
+    const res = await fetch('/api/admin/combine', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    setCombinedFestivals(data.combined_festivals || []);
+    setCombineRequests(data.requests || []);
+  };
+
+  const loadCombinedCandidates = async () => {
+    const res = await fetch('/api/admin/combined-candidates', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.combined) {
+      setCombinedCandidates(data.candidates || []);
+    } else {
+      setCombinedCandidates([]);
+    }
+  };
+
+  const openCombineForm = async (combinedId: number | null = null) => {
+    const res = await fetch('/api/admin/combine/available-majors', { credentials: 'include' });
+    const data = await res.json();
     if (!res.ok) {
-      alert(data.detail || 'Delete failed');
+      alert(data.detail);
       return;
     }
 
-    loadCandidateYears();
-    loadMajorCandidates();
+    setEditingCombinedId(combinedId);
+    setAvailableMajors(data.available_majors || []);
+
+    const current = combinedFestivals.find(item => item.combined_id === combinedId);
+    setCombinedName(current ? current.combined_name : '');
+    setSelectedMajorIds(current ? current.major_ids : []);
+    setIsCombineEditorOpen(true);
   };
 
-  const addWholeCandidate = async (candidateId: number) => {
-    const res = await fetch(`/api/admin/whole-candidates/${candidateId}`, {
+  const handleSaveCombine = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMajorIds.length) {
+      alert('Select at least one other major.');
+      return;
+    }
+
+    const form = new FormData();
+    form.append('combined_name', combinedName);
+    selectedMajorIds.forEach(id => form.append('major_ids', String(id)));
+
+    const isEditing = editingCombinedId !== null;
+    const url = isEditing ? `/api/admin/combine/${editingCombinedId}` : '/api/admin/combine';
+
+    const res = await fetch(url, {
+      method: isEditing ? 'PUT' : 'POST',
+      body: form,
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail);
+      return;
+    }
+
+    setIsCombineEditorOpen(false);
+    await loadCombinedFestivals();
+    await loadCandidateManagementStatus();
+  };
+
+  const respondCombine = async (requestId: number, responseType: string) => {
+    const form = new FormData();
+    form.append('response', responseType);
+    const res = await fetch(`/api/admin/combine/requests/${requestId}/response`, {
+      method: 'PUT',
+      body: form,
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail);
+      return;
+    }
+    await loadCombinedFestivals();
+    await loadCombinedCandidates();
+    await loadCandidateManagementStatus();
+    await loadCandidates();
+  };
+
+  const rejectCombine = async (requestId: number) => {
+    const reason = prompt('Reason for rejection:') || 'Combination request rejected.';
+    const form = new FormData();
+    form.append('response', 'rejected');
+    form.append('message', reason);
+    const res = await fetch(`/api/admin/combine/requests/${requestId}/response`, {
+      method: 'PUT',
+      body: form,
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail);
+      return;
+    }
+    await loadCombinedFestivals();
+  };
+
+  // --- TITLES LOGIC ---
+
+  const loadTitles = async () => {
+    const res = await fetch('/api/admin/titles', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    setTitlesLocked(Boolean(data.locked));
+    setTitleStatusMsg(data.locked ? 'Titles are locked because a festival has already started or completed.' : 'Titles can be managed before festivals begin.');
+    setTitles(data.titles || []);
+  };
+
+  const handleAddTitle = async (formData: TitleFormData) => {
+    const form = new FormData();
+    form.append('title', formData.title);
+    form.append('group', formData.group);
+
+    const res = await fetch('/api/admin/titles', {
       method: 'POST',
+      body: form,
       credentials: 'include'
     });
     const data = await res.json();
-
     if (!res.ok) {
-      alert(data.detail || 'Unable to add candidate');
+      alert(data.detail);
       return;
     }
-
-    await loadWholeCandidates();
-    await openAvailableCandidates();
+    titleForm.reset();
+    await loadTitles();
   };
 
-  const removeWholeCandidate = async (candidateId: number) => {
-    if (wholeStatus.candidate_management_locked) {
-      alert('Whole candidate removing is locked while the Whole festival is running.');
-      return;
-    }
-    if (!confirm('Remove this candidate from the Whole-stage list?')) return;
-
-    const res = await fetch(`/api/admin/whole-candidates/${candidateId}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
+  const deleteTitle = async (titleId: number) => {
+    if (!confirm('Delete this title?')) return;
+    const res = await fetch(`/api/admin/titles/${titleId}`, { method: 'DELETE', credentials: 'include' });
     const data = await res.json();
-
     if (!res.ok) {
-      alert(data.detail || 'Unable to remove candidate');
+      alert(data.detail);
       return;
     }
-
-    await loadWholeCandidates();
-    if (showAvailablePanel) openAvailableCandidates();
+    await loadTitles();
   };
 
-  const startWholeEdit = (candidate: any) => {
-    if (wholeStatus.candidate_management_locked) {
-      alert('Whole candidate editing is locked while the Whole festival is running.');
+  // --- WHOLE ADMIN LOGIC ---
+
+  const loadWhole = async () => {
+    const res = await fetch('/api/admin/whole-candidates', { credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.detail);
       return;
     }
-    setEditingWholeCandidate(candidate);
-    wholeEditForm.reset({
-      c_number: String(candidate.c_number)
-    });
+    if (!data.ready) {
+      setWholeReady(false);
+      setWholeMissingMajors(data.missing_majors || []);
+      return;
+    }
+    setWholeReady(true);
+    setWholeCandidates(data.candidates || []);
   };
 
-  const onUpdateWholeCandidate = async (data: WholeEditFormData) => {
-    if (!editingWholeCandidate) return;
+  const loadAvailableWhole = async () => {
+    const res = await fetch('/api/admin/whole-candidates/available', { credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok || !data.ready) return;
+    setAvailableWholeCandidates(data.available_candidates || []);
+  };
 
-    const formData = new FormData();
-    formData.append('c_number', data.c_number);
-    if (data.c_photo && data.c_photo[0]) {
-      formData.append('c_photo', data.c_photo[0]);
-    }
+  const addWhole = async (id: number) => {
+    const res = await fetch(`/api/admin/whole-candidates/${id}`, { method: 'POST', credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok) alert(data.detail);
+    await loadWhole();
+    await loadAvailableWhole();
+  };
 
-    const res = await fetch(`/api/admin/whole-candidates/${editingWholeCandidate.c_id}`, {
+  const removeWhole = async (id: number) => {
+    const res = await fetch(`/api/admin/whole-candidates/${id}`, { method: 'DELETE', credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok) alert(data.detail);
+    await loadWhole();
+    await loadAvailableWhole();
+  };
+
+  const updateWholeNumber = async (id: number, newNumber: number) => {
+    const form = new FormData();
+    form.append('c_w_number', String(newNumber));
+    const res = await fetch(`/api/admin/whole-candidates/${id}`, {
       method: 'PUT',
-      body: formData,
+      body: form,
       credentials: 'include'
     });
-    const resData = await res.json();
-
+    const data = await res.json();
     if (!res.ok) {
-      alert(resData.detail || 'Whole candidate update failed');
+      alert(data.detail);
       return;
     }
-
-    setEditingWholeCandidate(null);
-    loadWholeCandidates();
+    await loadWhole();
   };
 
-  // Old Candidate Title options dependent on selected gender
-  const oldTitleOptions = candidateGender === 'boy' 
-    ? [{ id: 1, name: 'King' }, { id: 3, name: 'Smart' }, { id: 5, name: 'Mr.Popular' }]
-    : [{ id: 2, name: 'Queen' }, { id: 4, name: 'Style' }, { id: 6, name: 'Ms.Popular' }];
+  // --- RENDER VIEWS ---
 
   return (
     <Layout>
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl border border-[hsl(265_10%_90%)] shadow-xl overflow-hidden max-w-xl mx-auto p-6"
-    >
-      {/* Header */}
-      <div className="p-4 border-b border-[hsl(265_10%_92%)] bg-[hsl(265_85%_98%)] rounded-xl flex justify-center ">
-        {/* View Selection Toggle */}
-        <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-[hsl(265_10%_88%)]">
-          <button
-            type="button"
-            onClick={() => setAdminMode('major')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              adminMode === 'major'
-                ? 'green-bg text-white shadow'
-                : 'text-[hsl(265_10%_40%)] hover:bg-[hsl(265_20%_97%)]'
-            }`}
-          >
-            Major Mode
-          </button>
-          <button
-            type="button"
-            onClick={() => setAdminMode('whole')}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              adminMode === 'whole'
-                ? 'green-bg text-white shadow'
-                : 'text-[hsl(265_10%_40%)] hover:bg-[hsl(265_20%_97%)]'
-            }`}
-          >
-            Whole Mode
-          </button>
-        </div>
-      </div>
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-[1120px] mx-auto p-5 space-y-5 min-h-screen"
+      >
+      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
-      <div className="p-4 space-y-6">
-        {/* MAJOR MODE */}
-        {adminMode === 'major' && (
-          <>
-            {/* Status Banner */}
-            <div className="p-4 rounded-xl border border-[hsl(265_10%_90%)] bg-[hsl(260_30%_99%)] flex items-center justify-between">
-              <div>
-                <span className="text-sm font-semibold text-[hsl(265_30%_20%)]">Major Festival Status: </span>
-                <span className="px-3 py-1 rounded-full bg-[oklch(95%_0.02_180)] text-[oklch(45%_0.07_180)] text-xs font-bold inline-block ml-2">
-                  {majorStatus.status_label || 'Unknown'}
-                </span>
-                {majorStatus.candidate_management_locked && (
-                  <p className="text-xs text-[hsl(265_10%_50%)] mt-1 flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-amber-500" /> Candidate management is locked while voting is active.
-                  </p>
-                )}
-              </div>
+      {/* ADMIN NAVIGATION IDENTITY */}
+      {me && (
+        <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+          <div className="flex items-center gap-[10px] flex-wrap">
+            <span>Signed in as {me.admin_name}</span>
+            <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">
+              {me.admin_role === 'major_admin' ? `Major: ${me.major || 'Unknown'}` : 'Whole Festival Admin'}
+            </span>
+            {me.admin_role === 'major_admin'}
+          </div>
+        </div>
+      )}
+
+      {/* MAJOR ADMIN UI */}
+      {me && me.admin_role === 'major_admin' && (
+        <div>
+          {/* COMBINE MAJORS PANEL */}
+          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+            <div className="flex items-center justify-between flex-wrap gap-[10px]">
+              <h2 className="m-0 text-xl font-bold">Combine Majors</h2>
+              <button type="button" onClick={() => openCombineForm()} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer">Combine</button>
+            </div>
+            <p className="text-[#667085] mt-2">Create one shared festival with your major and selected available majors.</p>
+            
+            <div className="mt-4 flex flex-col gap-3">
+              {combineRequests.map(request => {
+                const pendingForMe = request.status === 'pending' && !request.is_requester && request.my_response === 'pending';
+                return (
+                  <div key={request.request_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
+                    <b>{request.request_type === 'edit' ? 'Edit request' : 'Combine request'}: {request.combined_name}</b>
+                    <p className="my-1">{request.majors.join(' + ')}</p>
+                    <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">{request.status}</span>
+                    {request.status === 'rejected' && <p className="bg-[#f8fafc] p-3 rounded-[10px] mt-2">Rejected: {request.rejection_message || 'No reason provided.'}</p>}
+                    {pendingForMe && (
+                      <div className="flex gap-2 mt-3">
+                        <button className="bg-[#067647] text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => respondCombine(request.request_id, 'accepted')}>Accept</button>
+                        <button className="bg-[#b42318] text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => rejectCombine(request.request_id)}>Reject</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Add Candidate Form */}
-            <div className="p-6 rounded-2xl border border-[hsl(265_10%_90%)] bg-white space-y-4">
-              <h3 className="font-serif font-bold text-xl text-[hsl(265_30%_15%)]">Add Candidate</h3>
-              <form onSubmit={addForm.handleSubmit(onAddCandidate)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Candidate Name</label>
-                    <input
-                      {...addForm.register('c_name')}
-                      disabled={majorStatus.candidate_management_locked}
-                      className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm outline-none focus:ring-2 focus:ring-[hsl(265_85%_60%)]/30 disabled:opacity-50"
-                      placeholder="Full Name"
-                    />
+            <div className="mt-4 flex flex-col gap-3">
+              {!combinedFestivals.length ? (
+                <p className="text-[#667085]">No accepted combined festival yet.</p>
+              ) : (
+                combinedFestivals.map(item => (
+                  <div key={item.combined_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
+                    <b>{item.combined_name}</b>
+                    <p className="my-1">{item.majors.join(' + ')}</p>
+                    <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">
+                      {item.status === 1 ? 'Running' : item.status === 2 ? 'Completed' : 'Not started'}
+                    </span>
+                    {item.editable && (
+                      <button className="green-bg text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer ml-2" onClick={() => openCombineForm(item.combined_id)}>
+                        Edit Combine
+                      </button>
+                    )}
                   </div>
+                ))
+              )}
+            </div>
+          </div>
 
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Type</label>
-                    <select
-                      {...addForm.register('candidate_type')}
-                      disabled={majorStatus.candidate_management_locked}
-                      className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white outline-none focus:ring-2 focus:ring-[hsl(265_85%_60%)]/30 disabled:opacity-50"
-                    >
-                      <option value="new">New Candidate</option>
-                      <option value="old">Old Candidate</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Group</label>
-                    <select
-                      {...addForm.register('c_gender')}
-                      disabled={majorStatus.candidate_management_locked}
-                      className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white outline-none focus:ring-2 focus:ring-[hsl(265_85%_60%)]/30 disabled:opacity-50"
-                    >
-                      <option value="boy">Boy</option>
-                      <option value="girl">Girl</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Conditional Fields for Candidate Type */}
-                {candidateType === 'new' ? (
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Candidate Number</label>
-                    <input
-                      type="number"
-                      {...addForm.register('c_number')}
-                      disabled={majorStatus.candidate_management_locked}
-                      className="w-full md:w-1/3 px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm outline-none focus:ring-2 focus:ring-[hsl(265_85%_60%)]/30 disabled:opacity-50"
-                      placeholder="e.g. 101"
-                    />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Historical Scope</label>
-                      <select
-                        {...addForm.register('history_scope')}
-                        disabled={majorStatus.candidate_management_locked}
-                        className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white outline-none disabled:opacity-50"
-                      >
-                        <option value="major">Major</option>
-                        <option value="whole">Whole</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Previous Year</label>
-                      <input
-                        type="number"
-                        {...addForm.register('year')}
-                        disabled={majorStatus.candidate_management_locked}
-                        placeholder="e.g. 2025"
-                        className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm outline-none disabled:opacity-50"
+          {/* COMBINE EDITOR MODAL / PANEL */}
+          {isCombineEditorOpen && (
+            <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+              <h2>{editingCombinedId !== null ? 'Edit Combined Festival' : 'Create Combined Festival'}</h2>
+              <form onSubmit={handleSaveCombine} className="flex flex-col gap-3">
+                <input 
+                  value={combinedName} 
+                  onChange={e => setCombinedName(e.target.value)} 
+                  placeholder="Combined festival name" 
+                  required 
+                  className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white"
+                />
+                <p><b>Your major is included automatically.</b></p>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[14px]">
+                  {availableMajors.map(major => (
+                    <label key={major.major_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px] flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        value={major.major_id}
+                        checked={selectedMajorIds.includes(major.major_id)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setSelectedMajorIds([...selectedMajorIds, major.major_id]);
+                          } else {
+                            setSelectedMajorIds(selectedMajorIds.filter(id => id !== major.major_id));
+                          }
+                        }}
                       />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Awarded Title</label>
-                      <select
-                        {...addForm.register('title_id')}
-                        disabled={majorStatus.candidate_management_locked}
-                        className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white outline-none disabled:opacity-50"
-                      >
-                        {oldTitleOptions.map((t) => (
-                          <option key={t.id} value={t.id}>{t.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Candidate Photo</label>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    {...addForm.register('c_photo')}
-                    disabled={majorStatus.candidate_management_locked}
-                    className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm outline-none disabled:opacity-50"
-                  />
+                      {major.major}
+                    </label>
+                  ))}
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={majorStatus.candidate_management_locked}
-                  className="px-6 py-2.5 rounded-xl green-bg text-white font-bold hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-50"
-                >
-                  <Plus className="w-4 h-4" /> Add Candidate
-                </button>
+                <div className="flex gap-2">
+                  <button type="submit" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer">
+                    {editingCombinedId !== null ? 'Save Combine' : 'Combine'}
+                  </button>
+                  <button type="button" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer" onClick={() => setIsCombineEditorOpen(false)}>Cancel</button>
+                </div>
               </form>
             </div>
+          )}
 
-            {/* Inline Major Edit Modal/Panel */}
-            {editingCandidate && (
-              <div className="p-6 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-4">
-                <h3 className="font-serif font-bold text-lg text-amber-900">Edit Candidate: {editingCandidate.c_name}</h3>
-                <form onSubmit={editForm.handleSubmit(onUpdateCandidate)} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Name</label>
-                      <input
-                        {...editForm.register('c_name')}
-                        className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Number</label>
-                      <input
-                        type="number"
-                        {...editForm.register('c_number')}
-                        className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Group</label>
-                      <select
-                        {...editForm.register('c_gender')}
-                        className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white"
-                      >
-                        <option value="boy">Boy</option>
-                        <option value="girl">Girl</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Replace Photo (Optional)</label>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      {...editForm.register('c_photo')}
-                      className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button type="submit" className="px-5 py-2 rounded-lg green-bg text-white font-semibold text-sm">Save Changes</button>
-                    <button type="button" onClick={() => setEditingCandidate(null)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold text-sm">Cancel</button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* List & Filters */}
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <h3 className="font-serif font-bold text-xl text-[hsl(265_30%_15%)]">Candidates In Your Major</h3>
-                <button onClick={loadMajorCandidates} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 flex items-center gap-2 text-sm">
-                  <RefreshCw className="w-4 h-4" /> Refresh
-                </button>
-              </div>
-
-              {/* Filters */}
-              <div className="flex flex-wrap gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Candidate Scope</label>
-                  <select
-                    value={historyScope}
-                    onChange={(e) => setHistoryScope(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm"
-                  >
-                    <option value="major">Major Candidates</option>
-                    <option value="whole">Whole Historical Candidates</option>
-                  </select>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Filter by Year</label>
-                  <select
-                    value={yearFilter}
-                    onChange={(e) => setYearFilter(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm"
-                  >
-                    <option value="">All Years</option>
-                    {candidateYears.map((yr) => (
-                      <option key={yr} value={yr}>{yr}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Data Table */}
-              <div className="overflow-x-auto rounded-xl border border-[hsl(265_10%_90%)]">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-[hsl(265_85%_98%)] text-[hsl(265_30%_20%)] font-semibold">
-                    <tr>
-                      <th className="p-3">Photo</th>
-                      <th className="p-3">Name</th>
-                      <th className="p-3">Number</th>
-                      <th className="p-3">Year</th>
-                      <th className="p-3">Selection</th>
-                      <th className="p-3">Awarded Title</th>
-                      <th className="p-3">Group</th>
-                      <th className="p-3">Major</th>
-                      <th className="p-3">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[hsl(265_10%_92%)]">
-                    {candidates.length === 0 ? (
-                      <tr><td colSpan={9} className="p-4 text-center text-gray-400">No candidates found.</td></tr>
-                    ) : (
-                      candidates.map((c) => (
-                        <tr key={c.c_id} className="hover:bg-slate-50/50">
-                          <td className="p-3">
-                            {c.c_photo ? (
-                              <img src={c.c_photo} alt={c.c_name} className="w-10 h-10 object-cover rounded-lg" />
-                            ) : (
-                              '—'
-                            )}
-                          </td>
-                          <td className="p-3 font-semibold">{c.c_name}</td>
-                          <td className="p-3">{c.c_number}</td>
-                          <td className="p-3">{c.year}</td>
-                          <td className="p-3">{c.history_scope === 'whole' ? 'Whole' : 'Major'}</td>
-                          <td className="p-3">{c.title || '—'}</td>
-                          <td className="p-3 capitalize">{c.c_gender}</td>
-                          <td className="p-3">{c.major || '—'}</td>
-                          <td className="p-3">
-                            {c.history_scope === 'whole' ? (
-                              <span className="text-xs text-gray-400">View only</span>
-                            ) : majorStatus.candidate_management_locked ? (
-                              <span className="text-xs text-gray-400">Locked</span>
-                            ) : (
-                              <div className="flex gap-2">
-                                <button onClick={() => startEdit(c)} className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg">
-                                  <Edit2 className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => deleteCandidate(c.c_id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* WHOLE MODE */}
-        {adminMode === 'whole' && (
-          <>
-            {/* Status Banner */}
-            <div className="p-4 rounded-xl border border-[hsl(265_10%_90%)] bg-[hsl(260_30%_99%)] flex items-center justify-between">
+          {/* ADD CANDIDATE PANEL */}
+          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+            <h2>Add Current Candidate</h2>
+            <p className="bg-[#f8fafc] p-[12px] rounded-[10px] my-3">{candidateStatusMsg}</p>
+            <form onSubmit={candidateForm.handleSubmit(handleAddCandidate)} className="flex flex-col gap-3">
               <div>
-                <span className="text-sm font-semibold text-[hsl(265_30%_20%)]">Whole Festival Status: </span>
-                <span className="px-3 py-1 rounded-full bg-[oklch(95%_0.02_180)] text-[oklch(45%_0.07_180)] text-xs font-bold inline-block ml-2">
-                  {wholeStatus.status_label || 'Unknown'}
-                </span>
-                {wholeStatus.candidate_management_locked && (
-                  <p className="text-xs text-[hsl(265_10%_50%)] mt-1 flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-amber-500" /> Whole-stage candidate management is locked while voting is active.
-                  </p>
-                )}
+                <input {...candidateForm.register('c_name')} placeholder="Name" disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
+                {candidateForm.formState.errors.c_name && <p className="text-red-500 text-xs">{String(candidateForm.formState.errors.c_name.message)}</p>}
               </div>
-            </div>
-
-            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-serif font-bold text-xl text-[hsl(265_30%_15%)]">Whole Selection Candidates</h3>
-                {wholeYear && <p className="text-xs text-gray-500">Current Year: {wholeYear}</p>}
+                <input {...candidateForm.register('c_number')} type="number" min="1" placeholder="Candidate number" disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
+                {candidateForm.formState.errors.c_number && <p className="text-red-500 text-xs">{String(candidateForm.formState.errors.c_number.message)}</p>}
               </div>
-              <button
-                onClick={openAvailableCandidates}
-                disabled={wholeStatus.candidate_management_locked}
-                className="px-4 py-2 rounded-xl green-bg text-white text-sm font-semibold hover:bg-emerald-700 transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                <Plus className="w-4 h-4" /> Add Candidate
-              </button>
-            </div>
-
-            {/* Error Message for missing majors */}
-            {wholeError && (
-              <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
-                <strong>{wholeError.detail || 'All Major selections must be completed first.'}</strong>
-                {wholeError.missing_majors && (
-                  <p className="mt-1 text-xs text-red-600">Missing majors: {wholeError.missing_majors.join(', ')}</p>
-                )}
+              <div>
+                <select {...candidateForm.register('c_gender')} disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white">
+                  <option value="boy">Boy</option>
+                  <option value="girl">Girl</option>
+                </select>
               </div>
-            )}
+              <div>
+                <input {...candidateForm.register('c_photo')} type="file" accept="image/*" disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
+                {candidateForm.formState.errors.c_photo && <p className="text-red-500 text-xs">{String(candidateForm.formState.errors.c_photo.message)}</p>}
+              </div>
+              <button disabled={candidateManagementLocked} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer disabled:opacity-45">Add</button>
+            </form>
+          </div>
 
-            {/* Whole Candidates Table */}
-            <div className="overflow-x-auto rounded-xl border border-[hsl(265_10%_90%)]">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-[hsl(265_85%_98%)] text-[hsl(265_30%_20%)] font-semibold">
-                  <tr>
-                    <th className="p-3">Photo</th>
-                    <th className="p-3">Name</th>
-                    <th className="p-3">Whole Number</th>
-                    <th className="p-3">Major</th>
-                    <th className="p-3">Major Awarded Titles</th>
-                    <th className="p-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[hsl(265_10%_92%)]">
-                  {wholeCandidates.length === 0 ? (
-                    <tr><td colSpan={6} className="p-4 text-center text-gray-400">No Whole-stage candidates selected.</td></tr>
+          {/* CANDIDATES LIST PANEL */}
+          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+            <h2>Your Major Candidates</h2>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px] mt-4">
+              {candidates.map(candidate => (
+                <div key={candidate.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
+                  {candidate.c_photo && <img src={candidate.c_photo} className="w-full h-[220px] object-cover rounded-[12px] bg-[#edf1f6] mb-2" />}
+                  <b>#{candidate.c_number} {candidate.c_name}</b> ({candidate.c_gender})
+                  {candidateManagementLocked ? (
+                    <p className="text-[#667085] mt-2">Locked</p>
                   ) : (
-                    wholeCandidates.map((c) => (
-                      <tr key={c.c_id} className="hover:bg-slate-50/50">
-                        <td className="p-3">
-                          {c.c_photo ? (
-                            <img src={c.c_photo} alt={c.c_name} className="w-10 h-10 object-cover rounded-lg" />
-                          ) : (
-                            '—'
-                          )}
-                        </td>
-                        <td className="p-3 font-semibold">{c.c_name}</td>
-                        <td className="p-3">{c.c_number}</td>
-                        <td className="p-3">{c.major || '—'}</td>
-                        <td className="p-3">{c.titles?.join(', ')}</td>
-                        <td className="p-3">
-                          {wholeStatus.candidate_management_locked ? (
-                            <span className="text-xs text-gray-400">Locked</span>
-                          ) : (
-                            <div className="flex gap-2">
-                              <button onClick={() => startWholeEdit(c)} className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg">
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => removeWholeCandidate(c.c_id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                    <div className="flex gap-2 mt-3">
+                      <button className="green-bg text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => startCandidateEdit(candidate.c_id)}>Edit</button>
+                      <button className="bg-[#b42318] text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => deleteCandidate(candidate.c_id)}>Delete</button>
+                    </div>
                   )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Whole Candidate Edit Form */}
-            {editingWholeCandidate && (
-              <div className="p-6 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-4">
-                <h3 className="font-serif font-bold text-lg text-amber-900">
-                  Edit Whole Candidate: {editingWholeCandidate.c_name} ({editingWholeCandidate.major})
-                </h3>
-                <form onSubmit={wholeEditForm.handleSubmit(onUpdateWholeCandidate)} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Whole-stage Candidate Number</label>
-                    <input
-                      type="number"
-                      {...wholeEditForm.register('c_number')}
-                      className="w-full md:w-1/3 px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[hsl(265_10%_50%)] mb-1.5">Replace Photo (Optional)</label>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      {...wholeEditForm.register('c_photo')}
-                      className="w-full px-3 py-2 rounded-lg border border-[hsl(265_10%_88%)] text-sm bg-white"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button type="submit" className="px-5 py-2 rounded-lg bg-emerald-600 text-white font-semibold text-sm">Save Changes</button>
-                    <button type="button" onClick={() => setEditingWholeCandidate(null)} className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold text-sm">Cancel</button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Available Major Winners Side-Panel / Section */}
-            {showAvailablePanel && (
-              <div className="p-6 rounded-2xl border border-[hsl(265_10%_88%)] bg-slate-50 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-serif font-bold text-lg text-slate-800">Available Major Winners</h3>
-                  <button onClick={() => setShowAvailablePanel(false)} className="p-1.5 text-gray-500 hover:bg-gray-200 rounded-lg">
-                    <X className="w-4 h-4" />
-                  </button>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {availableError ? (
-                  <p className="text-sm text-red-600">{availableError}</p>
-                ) : availableCandidates.length === 0 ? (
-                  <p className="text-sm text-gray-500">No additional Major-selection winners are available.</p>
-                ) : (
-                  <div className="overflow-x-auto rounded-xl border border-[hsl(265_10%_90%)] bg-white">
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-gray-50 text-gray-700">
-                        <tr>
-                          <th className="p-3">Photo</th>
-                          <th className="p-3">Name</th>
-                          <th className="p-3">Number</th>
-                          <th className="p-3">Major</th>
-                          <th className="p-3">Titles</th>
-                          <th className="p-3">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {availableCandidates.map((ac) => (
-                          <tr key={ac.c_id}>
-                            <td className="p-3">
-                              {ac.c_photo ? <img src={ac.c_photo} className="w-8 h-8 object-cover rounded-md" /> : '—'}
-                            </td>
-                            <td className="p-3 font-medium">{ac.c_name}</td>
-                            <td className="p-3">{ac.c_number}</td>
-                            <td className="p-3">{ac.major || '—'}</td>
-                            <td className="p-3">{ac.titles?.join(', ')}</td>
-                            <td className="p-3">
-                              <button
-                                onClick={() => addWholeCandidate(ac.c_id)}
-                                className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700"
-                              >
-                                Add
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+          {/* COMBINED CANDIDATES PANEL */}
+          {combinedCandidates.length > 0 && (
+            <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+              <h2>Combined Candidates</h2>
+              <p className="text-[#667085] mb-4">Candidates from every major in your accepted combination.</p>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
+                {combinedCandidates.map(c => (
+                  <div key={c.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
+                    {c.c_photo && <img src={c.c_photo} className="w-full h-[220px] object-cover rounded-[12px] bg-[#edf1f6] mb-2" />}
+                    <b>#{c.c_number} {c.c_name}</b>
+                    <p className="text-[#667085] mt-1">{c.major} — {c.c_gender}</p>
                   </div>
-                )}
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TITLES PANEL */}
+          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+            <h2>Titles</h2>
+            <p className="bg-[#f8fafc] p-[12px] rounded-[10px] my-3">{titleStatusMsg}</p>
+            <form onSubmit={titleForm.handleSubmit(handleAddTitle)} className="flex flex-col gap-3 mb-4">
+              <input {...titleForm.register('title')} placeholder="Title name" disabled={titlesLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
+              <select {...titleForm.register('group')} disabled={titlesLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white">
+                <option value="boy">Boy title</option>
+                <option value="girl">Girl title</option>
+              </select>
+              <button disabled={titlesLocked} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer disabled:opacity-45">Add Title</button>
+            </form>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
+              {titles.map(t => (
+                <div key={t.title_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px] flex justify-between items-center">
+                  <div>
+                    <b>{t.title}</b> <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold ml-2">{t.group}</span>
+                  </div>
+                  {!titlesLocked && (
+                    <button className="text-[#b42318] rounded-[10px] p-[6px_12px] font-bold border-0 cursor-pointer" onClick={() => deleteTitle(t.title_id)}> <Trash2 size={16} /> </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* EDIT CANDIDATE MODAL / PANEL */}
+          {editingCandidateId !== null && (
+            <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+              <h2>Edit Candidate</h2>
+              <form onSubmit={editCandidateForm.handleSubmit(handleUpdateCandidate)} className="flex flex-col gap-3">
+                <input {...editCandidateForm.register('c_name')} placeholder="Name" required className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
+                <input {...editCandidateForm.register('c_number')} type="number" min="1" placeholder="Candidate number" required className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
+                <input {...editCandidateForm.register('c_photo')} type="file" accept="image/*" className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
+                <div className="flex gap-2">
+                  <button type="submit" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer">Save Changes</button>
+                  <button type="button" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer" onClick={cancelCandidateEdit}>Cancel</button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* WHOLE ADMIN UI */}
+      {me && me.admin_role === 'whole_admin' && (
+        <div>
+          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+            <h2>Whole Festival Candidates</h2>
+            <p className="text-[#667085] mb-3">Only the Whole Admin can manage this list. Major admins cannot edit Whole candidates.</p>
+            <button onClick={loadWhole} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer mb-4">Refresh</button>
+            
+            {!wholeReady ? (
+              <p className="text-red-500 font-semibold">Waiting for: {wholeMissingMajors.join(', ')}</p>
+            ) : (
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
+                {wholeCandidates.map(candidate => (
+                  <div key={candidate.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
+                    <b>#{candidate.c_w_number} {candidate.c_name}</b> — {candidate.major}
+                    <p className="text-[#667085] my-2">Awarded: {(candidate.awarded_titles || []).join(', ') || 'No title found'}</p>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        id={`wholeNumber${candidate.c_id}`}
+                        type="number" 
+                        min="1" 
+                        defaultValue={candidate.c_w_number} 
+                        className="w-[100px] p-[8px] border border-[#d6dbe5] rounded-[10px] bg-white"
+                      />
+                      <button onClick={() => {
+                        const inputEl = document.getElementById(`wholeNumber${candidate.c_id}`) as HTMLInputElement;
+                        if (inputEl) updateWholeNumber(candidate.c_id, Number(inputEl.value));
+                      }} className="border-0 rounded-[10px] p-[8px_12px] green-bg text-white font-bold text-xs cursor-pointer">Save</button>
+                      <button className="border-0 rounded-[10px] p-[8px_12px] bg-[#b42318] text-white font-bold text-xs cursor-pointer" onClick={() => removeWhole(candidate.c_id)}>Remove</button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
-          </>
-        )}
-      </div>
+          </div>
+
+          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
+            <h2>Available Major Winners</h2>
+            <button onClick={loadAvailableWhole} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer mb-4">Refresh</button>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
+              {availableWholeCandidates.map(candidate => (
+                <div key={candidate.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
+                  <b>#{candidate.c_number} {candidate.c_name}</b> — {candidate.major}
+                  <p className="text-[#667085] my-2">Awarded: {(candidate.awarded_titles || []).join(', ')}</p>
+                  {candidate.selected ? (
+                    <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">Added to Whole</span>
+                  ) : (
+                    <button className="border-0 rounded-[10px] p-[8px_14px] green-bg text-white font-bold cursor-pointer" onClick={() => addWhole(candidate.c_id)}>Add</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
     </Layout>
   );

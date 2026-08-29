@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Crown, Sparkles, Heart, Brain, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Crown} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/layouts/Layout';
 
