@@ -2,20 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { 
-  Plus, 
-  Trash2, 
-  Edit2, 
-  RefreshCw, 
-  Lock, 
-  Layers, 
-  Award, 
-  Filter, 
-  X, 
-  Check, 
-  User, 
-  Hash, 
-  Upload 
+import {
+  Plus,
+  Trash2,
+  RefreshCw,
+  Lock,
+  Check,
+  User,
+  Edit2,
+  Upload,
+  Layers,
+  Award,
+  MoreVertical,
+  X,
 } from 'lucide-react';
 import Layout from '@/layouts/AdminLayout';
 import { motion } from 'framer-motion';
@@ -330,7 +329,7 @@ export default function AdminDashboard() {
     if (!res.ok) return;
     const data = await res.json();
     setTitlesLocked(Boolean(data.locked));
-    setTitleStatusMsg(data.locked ? 'Titles are locked because a festival has already started or completed.' : 'Titles can be managed before festivals begin.');
+    setTitleStatusMsg(data.locked ? 'Titles are locked because a event has already started or completed.' : 'Titles can be managed before festivals begin.');
     setTitles(data.titles || []);
   };
 
@@ -425,286 +424,1065 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-    <motion.div
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-[1120px] mx-auto p-5 space-y-5 min-h-screen"
+        className="min-h-screen px-3 py-4 sm:px-5 sm:py-6"
       >
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+        <div className="mx-auto max-w-[1180px]">
 
-      {/* ADMIN NAVIGATION IDENTITY */}
-      {me && (
-        <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-          <div className="flex items-center gap-[10px] flex-wrap">
-            <span>Signed in as {me.admin_name}</span>
-            <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">
-              {me.admin_role === 'major_admin' ? `Major: ${me.major || 'Unknown'}` : 'Whole Festival Admin'}
-            </span>
-            {me.admin_role === 'major_admin'}
+          {/* =========================================================
+              HEADER
+          ========================================================= */}
+          <div className="mb-5 sm:mb-6">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+
+                <h1 className="text-[26px] font-bold tracking-[-0.5px] text-[#182521] sm:text-[30px]">
+                  Admin Dashboard
+                </h1>
+
+                {me && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-[#6d7b76]">
+                      Welcome, {me.admin_name}
+                    </span>
+
+                    <span className="rounded-full bg-white/80 px-3 py-1 text-[11px] font-bold text-[#238d77] shadow-sm ring-1 ring-black/[0.03]">
+                      {me.admin_role === 'major_admin'
+                        ? `Major: ${me.major || 'Unknown'}`
+                        : 'The Whole Welcome Admin'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+
+
+          {/* =========================================================
+              MAJOR ADMIN UI
+          ========================================================= */}
+          {me && me.admin_role === 'major_admin' && (
+            <div className="space-y-5">
+
+              {/* =====================================================
+                  COMBINE MAJORS
+              ===================================================== */}
+              <section className="rounded-[24px] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e6f8f1]">
+                        <Layers size={18} className="text-[#1e9c83]" />
+                      </div>
+
+                      <div>
+                        <h2 className="text-[18px] font-bold text-[#182521]">
+                          Combine Majors
+                        </h2>
+
+                        <p className="text-[12px] text-[#7a8783]">
+                          Create a shared event.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => openCombineForm()}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl green-bg px-4 py-3 text-sm font-bold text-white shadow-[0_6px_16px_rgba(32,170,145,.22)] transition hover:bg-[#18977f] active:scale-[.98] sm:w-auto"
+                  >
+                    <Plus size={17} />
+                    Combine
+                  </button>
+                </div>
+
+                {/* Requests */}
+                {combineRequests.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {combineRequests.map(request => {
+                      const pendingForMe =
+                        request.status === 'pending' &&
+                        !request.is_requester &&
+                        request.my_response === 'pending';
+
+                      return (
+                        <div
+                          key={request.request_id}
+                          className="rounded-[18px] border border-[#e8eeeb] bg-[#f9fcfa] p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-[#26332f]">
+                                {request.request_type === 'edit'
+                                  ? 'Edit request'
+                                  : 'Combine request'}
+                              </p>
+
+                              <p className="mt-1 break-words text-sm text-[#687771]">
+                                {request.combined_name}
+                              </p>
+
+                              <p className="mt-1 text-xs text-[#8a9692]">
+                                {request.majors.join(' + ')}
+                              </p>
+                            </div>
+
+                            <span className="shrink-0 rounded-full bg-[#e9f7f2] px-2.5 py-1 text-[10px] font-bold capitalize text-[#208d77]">
+                              {request.status}
+                            </span>
+                          </div>
+
+                          {request.status === 'rejected' && (
+                            <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-relaxed text-[#737f7b]">
+                              Rejected:{' '}
+                              {request.rejection_message ||
+                                'No reason provided.'}
+                            </p>
+                          )}
+
+                          {pendingForMe && (
+                            <div className="mt-3 flex gap-2">
+                              <button
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#168667] px-3 py-2.5 text-xs font-bold text-white transition active:scale-[.98]"
+                                onClick={() =>
+                                  respondCombine(
+                                    request.request_id,
+                                    'accepted'
+                                  )
+                                }
+                              >
+                                <Check size={15} />
+                                Accept
+                              </button>
+
+                              <button
+                                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#c7443a] px-3 py-2.5 text-xs font-bold text-white transition active:scale-[.98]"
+                                onClick={() =>
+                                  rejectCombine(request.request_id)
+                                }
+                              >
+                                <X size={15} />
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Combined events */}
+                <div className="mt-4">
+                  {!combinedFestivals.length ? (
+                    <div className="rounded-[18px] border border-dashed border-[#dce8e3] bg-[#fbfdfc] px-4 py-5 text-center">
+                      <Layers
+                        size={22}
+                        className="mx-auto mb-2 text-[#a4b2ad]"
+                      />
+
+                      <p className="text-xs text-[#87938f]">
+                        No accepted combined event yet.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {combinedFestivals.map(item => (
+                        <div
+                          key={item.combined_id}
+                          className="rounded-[18px] border border-[#e8eeeb] bg-[#fbfdfc] p-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold text-[#26332f]">
+                                {item.combined_name}
+                              </p>
+
+                              <p className="mt-1 text-xs text-[#7a8783]">
+                                {item.majors.join(' + ')}
+                              </p>
+                            </div>
+
+                            <span className="shrink-0 rounded-full bg-[#e9f7f2] px-2.5 py-1 text-[10px] font-bold text-[#208d77]">
+                              {item.status === 1
+                                ? 'Running'
+                                : item.status === 2
+                                ? 'Completed'
+                                : 'Not started'}
+                            </span>
+                          </div>
+
+                          {item.editable && (
+                            <button
+                              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#dce8e3] bg-white px-3 py-2.5 text-xs font-bold text-[#278f7a] transition hover:bg-[#f4fbf8]"
+                              onClick={() =>
+                                openCombineForm(item.combined_id)
+                              }
+                            >
+                              <Edit2 size={14} />
+                              Edit Combine
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+
+
+              {/* =====================================================
+                  COMBINE EDITOR
+              ===================================================== */}
+              {isCombineEditorOpen && (
+                <section className="rounded-[24px] border border-[#dcece6] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[1px] text-[#24a58c]">
+                        Event Setup
+                      </p>
+
+                      <h2 className="mt-1 text-xl font-bold text-[#182521]">
+                        {editingCombinedId !== null
+                          ? 'Edit Combined Event'
+                          : 'Create Combined Event'}
+                      </h2>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsCombineEditorOpen(false)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f3f6f4] text-[#6e7b77]"
+                    >
+                      <X size={17} />
+                    </button>
+                  </div>
+
+                  <form
+                    onSubmit={handleSaveCombine}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold text-[#56645f]">
+                        Combined event name
+                      </label>
+
+                      <input
+                        value={combinedName}
+                        onChange={e => setCombinedName(e.target.value)}
+                        placeholder="e.g. Major Welcome 2026"
+                        required
+                        className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-4 py-3 text-sm outline-none transition placeholder:text-[#aab5b1] focus:border-[#2aae94] focus:bg-white focus:ring-4 focus:ring-[#20aa91]/10"
+                      />
+                    </div>
+
+                    <div>
+                      <p className="mb-2 text-xs font-bold text-[#56645f]">
+                        Select other majors
+                      </p>
+
+                      <p className="mb-3 rounded-xl bg-[#f3faf7] px-3 py-2.5 text-xs text-[#668078]">
+                        Your major is included automatically.
+                      </p>
+
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {availableMajors.map(major => (
+                          <label
+                            key={major.major_id}
+                            className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
+                              selectedMajorIds.includes(major.major_id)
+                                ? 'border-[#7bd3bf] bg-[#eefaf6]'
+                                : 'border-[#e5ece9] bg-white hover:bg-[#fafcfb]'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              value={major.major_id}
+                              checked={selectedMajorIds.includes(
+                                major.major_id
+                              )}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedMajorIds([
+                                    ...selectedMajorIds,
+                                    major.major_id
+                                  ]);
+                                } else {
+                                  setSelectedMajorIds(
+                                    selectedMajorIds.filter(
+                                      id => id !== major.major_id
+                                    )
+                                  );
+                                }
+                              }}
+                              className="h-4 w-4 accent-[#20aa91]"
+                            />
+
+                            <span className="text-sm font-semibold text-[#34413d]">
+                              {major.major}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <button
+                        type="submit"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl green-bg px-4 py-3 text-sm font-bold text-white transition active:scale-[.98]"
+                      >
+                        <Check size={16} />
+                        {editingCombinedId !== null
+                          ? 'Save Combine'
+                          : 'Combine'}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="rounded-xl bg-[#f0f3f1] px-5 py-3 text-sm font-bold text-[#66736e] transition hover:bg-[#e8edeb]"
+                        onClick={() => setIsCombineEditorOpen(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </section>
+              )}
+
+
+              {/* =====================================================
+                  CANDIDATE MANAGEMENT
+                  DESKTOP = LEFT FORM + RIGHT CANDIDATES
+                  MOBILE = FORM ABOVE CANDIDATES
+              ===================================================== */}
+              <div className="grid items-start gap-5 lg:grid-cols-[350px_1fr]">
+
+                {/* ADD CANDIDATE */}
+                <section className="rounded-[24px] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5 lg:sticky lg:top-5">
+
+                  <div className="mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e5f8f2]">
+                        <Plus size={19} className="text-[#20a88e]" />
+                      </div>
+
+                      <div>
+                        <h2 className="text-[18px] font-bold text-[#182521]">
+                          Add Candidate
+                        </h2>
+
+                        <p className="text-xs text-[#82908b]">
+                          Add a new candidate
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`mb-4 rounded-xl px-3 py-2.5 text-xs leading-relaxed ${
+                      candidateManagementLocked
+                        ? 'bg-[#fff2f0] text-[#a33b32]'
+                        : 'bg-[#f0faf6] text-[#4d7669]'
+                    }`}
+                  >
+                    {candidateStatusMsg}
+                  </div>
+
+                  <form
+                    onSubmit={candidateForm.handleSubmit(
+                      handleAddCandidate
+                    )}
+                    className="space-y-3"
+                  >
+                    {/* Name */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold text-[#56645f]">
+                        Name
+                      </label>
+
+                      <input
+                        {...candidateForm.register('c_name')}
+                        placeholder="Candidate name"
+                        disabled={candidateManagementLocked}
+                        className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-3.5 py-3 text-sm outline-none transition placeholder:text-[#aab5b1] focus:border-[#2aae94] focus:bg-white focus:ring-4 focus:ring-[#20aa91]/10 disabled:cursor-not-allowed disabled:bg-[#f3f5f4]"
+                      />
+
+                      {candidateForm.formState.errors.c_name && (
+                        <p className="mt-1 text-[11px] text-red-500">
+                          {String(
+                            candidateForm.formState.errors.c_name.message
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Number */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold text-[#56645f]">
+                        Candidate number
+                      </label>
+
+                      <input
+                        {...candidateForm.register('c_number')}
+                        type="number"
+                        min="1"
+                        placeholder="e.g. 01"
+                        disabled={candidateManagementLocked}
+                        className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-3.5 py-3 text-sm outline-none transition placeholder:text-[#aab5b1] focus:border-[#2aae94] focus:bg-white focus:ring-4 focus:ring-[#20aa91]/10 disabled:cursor-not-allowed disabled:bg-[#f3f5f4]"
+                      />
+
+                      {candidateForm.formState.errors.c_number && (
+                        <p className="mt-1 text-[11px] text-red-500">
+                          {String(
+                            candidateForm.formState.errors.c_number.message
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Gender */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold text-[#56645f]">
+                        Group
+                      </label>
+
+                      <select
+                        {...candidateForm.register('c_gender')}
+                        disabled={candidateManagementLocked}
+                        className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-3.5 py-3 text-sm outline-none transition focus:border-[#2aae94] focus:bg-white focus:ring-4 focus:ring-[#20aa91]/10 disabled:cursor-not-allowed disabled:bg-[#f3f5f4]"
+                      >
+                        <option value="boy">Boy</option>
+                        <option value="girl">Girl</option>
+                      </select>
+                    </div>
+
+                    {/* Photo */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-bold text-[#56645f]">
+                        Candidate photo
+                      </label>
+
+                      <label
+                        className={`flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#cbd9d4] bg-[#fbfdfc] px-3 py-3 ${
+                          candidateManagementLocked
+                            ? 'pointer-events-none opacity-50'
+                            : 'hover:bg-[#f6faf8]'
+                        }`}
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#edf8f4]">
+                          <Upload
+                            size={16}
+                            className="text-[#229c84]"
+                          />
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-semibold text-[#4e5d57]">
+                            Choose photo
+                          </p>
+                          <p className="text-[10px] text-[#97a39f]">
+                            JPG, PNG or WEBP
+                          </p>
+                        </div>
+
+                        <input
+                          {...candidateForm.register('c_photo')}
+                          type="file"
+                          accept="image/*"
+                          disabled={candidateManagementLocked}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {candidateForm.formState.errors.c_photo && (
+                        <p className="mt-1 text-[11px] text-red-500">
+                          {String(
+                            candidateForm.formState.errors.c_photo.message
+                          )}
+                        </p>
+                      )}
+                    </div>
+
+                    <button
+                      disabled={candidateManagementLocked}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl green-bg px-4 py-3 text-sm font-bold text-white shadow-[0_6px_16px_rgba(32,170,145,.18)] transition hover:bg-[#18977f] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <Plus size={17} />
+                      Add candidate
+                    </button>
+                  </form>
+                </section>
+
+
+                {/* CANDIDATES */}
+                <section className="min-w-0 rounded-[24px] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
+
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-[19px] font-bold text-[#182521]">
+                        Your Candidates
+                      </h2>
+
+                      <p className="mt-0.5 text-xs text-[#87938f]">
+                        {candidates.length}{' '}
+                        {candidates.length === 1
+                          ? 'candidate'
+                          : 'candidates'}
+                      </p>
+                    </div>
+
+                    <div className="flex h-9 min-w-9 items-center justify-center rounded-full bg-[#eef9f5] px-3 text-xs font-bold text-[#218f78]">
+                      {candidates.length}
+                    </div>
+                  </div>
+
+                  {candidates.length === 0 ? (
+                    <div className="rounded-[20px] border border-dashed border-[#dce7e3] bg-[#fbfdfc] px-5 py-10 text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf8f4]">
+                        <User
+                          size={22}
+                          className="text-[#2ba18a]"
+                        />
+                      </div>
+
+                      <p className="text-sm font-bold text-[#586660]">
+                        No candidates yet
+                      </p>
+
+                      <p className="mt-1 text-xs text-[#8d9995]">
+                        Add your first candidate using the form.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+
+{candidates.map(candidate => (
+  <motion.div
+    key={candidate.c_id}
+    whileHover={{ y: -2 }}
+    className="relative flex h-[95px] items-center gap-3 rounded-[18px] border border-white bg-white p-2.5 shadow-[0_6px_18px_rgba(30,70,55,.06)]"
+  >
+
+    {/* PHOTO */}
+    <div className="h-[70px] w-[70px] shrink-0 overflow-hidden rounded-[14px] bg-[#edf5f1]">
+      {candidate.c_photo ? (
+        <img
+          src={candidate.c_photo}
+          alt={candidate.c_name}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-[#a5b5af]">
+          <User size={24} />
         </div>
       )}
+    </div>
 
-      {/* MAJOR ADMIN UI */}
-      {me && me.admin_role === 'major_admin' && (
-        <div>
-          {/* COMBINE MAJORS PANEL */}
-          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-            <div className="flex items-center justify-between flex-wrap gap-[10px]">
-              <h2 className="m-0 text-xl font-bold">Combine Majors</h2>
-              <button type="button" onClick={() => openCombineForm()} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer">Combine</button>
-            </div>
-            <p className="text-[#667085] mt-2">Create one shared festival with your major and selected available majors.</p>
-            
-            <div className="mt-4 flex flex-col gap-3">
-              {combineRequests.map(request => {
-                const pendingForMe = request.status === 'pending' && !request.is_requester && request.my_response === 'pending';
-                return (
-                  <div key={request.request_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
-                    <b>{request.request_type === 'edit' ? 'Edit request' : 'Combine request'}: {request.combined_name}</b>
-                    <p className="my-1">{request.majors.join(' + ')}</p>
-                    <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">{request.status}</span>
-                    {request.status === 'rejected' && <p className="bg-[#f8fafc] p-3 rounded-[10px] mt-2">Rejected: {request.rejection_message || 'No reason provided.'}</p>}
-                    {pendingForMe && (
-                      <div className="flex gap-2 mt-3">
-                        <button className="bg-[#067647] text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => respondCombine(request.request_id, 'accepted')}>Accept</button>
-                        <button className="bg-[#b42318] text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => rejectCombine(request.request_id)}>Reject</button>
-                      </div>
-                    )}
+    {/* INFORMATION */}
+    <div className="min-w-0 flex-1">
+
+      <p className="text-[11px] font-medium text-[#7d8985]">
+        No. {candidate.c_number} ·{' '}
+        {candidate.c_gender === 'boy' ? 'Boys' : 'Girls'}
+      </p>
+
+      <h3 className="mt-0.5 truncate text-[15px] font-bold text-[#26332f]">
+        {candidate.c_name}
+      </h3>
+
+      {/* EDIT BUTTON */}
+      {!candidateManagementLocked && (
+        <button
+          onClick={() => startCandidateEdit(candidate.c_id)}
+          className="mt-2 flex items-center gap-1.5 rounded-xl bg-[#e8f8f2] px-3 py-1.5 text-xs font-bold text-[#15836c] transition hover:bg-[#d9f3e9] active:scale-[.97]"
+        >
+          <Edit2 size={13} />
+          Edit
+        </button>
+      )}
+    </div>
+
+    {/* DELETE BUTTON */}
+    {!candidateManagementLocked && (
+      <button
+        onClick={() => deleteCandidate(candidate.c_id)}
+        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-[#e05b5b] hover:bg-[#fff0ed]"
+        aria-label="Delete candidate"
+      >
+        <Trash2 size={14} />
+      </button>
+    )}
+
+  </motion.div>
+))}
+
+                    </div>
+                  )}
+                </section>
+              </div>
+
+
+              {/* =====================================================
+                  EDIT CANDIDATE
+              ===================================================== */}
+              {editingCandidateId !== null && (
+                <section className="rounded-[24px] border border-[#dcece6] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
+
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[1px] text-[#24a58c]">
+                        Candidate Management
+                      </p>
+
+                      <h2 className="mt-1 text-xl font-bold text-[#182521]">
+                        Edit Candidate
+                      </h2>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={cancelCandidateEdit}
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f3f6f4] text-[#6e7b77]"
+                    >
+                      <X size={17} />
+                    </button>
                   </div>
-                );
-              })}
-            </div>
 
-            <div className="mt-4 flex flex-col gap-3">
-              {!combinedFestivals.length ? (
-                <p className="text-[#667085]">No accepted combined festival yet.</p>
-              ) : (
-                combinedFestivals.map(item => (
-                  <div key={item.combined_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
-                    <b>{item.combined_name}</b>
-                    <p className="my-1">{item.majors.join(' + ')}</p>
-                    <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">
-                      {item.status === 1 ? 'Running' : item.status === 2 ? 'Completed' : 'Not started'}
-                    </span>
-                    {item.editable && (
-                      <button className="green-bg text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer ml-2" onClick={() => openCombineForm(item.combined_id)}>
-                        Edit Combine
-                      </button>
+                  <form
+                    onSubmit={editCandidateForm.handleSubmit(
+                      handleUpdateCandidate
                     )}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                    className="grid gap-3 sm:grid-cols-2"
+                  >
+                    <input
+                      {...editCandidateForm.register('c_name')}
+                      placeholder="Name"
+                      required
+                      className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-3.5 py-3 text-sm outline-none focus:border-[#2aae94] focus:ring-4 focus:ring-[#20aa91]/10"
+                    />
 
-          {/* COMBINE EDITOR MODAL / PANEL */}
-          {isCombineEditorOpen && (
-            <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-              <h2>{editingCombinedId !== null ? 'Edit Combined Festival' : 'Create Combined Festival'}</h2>
-              <form onSubmit={handleSaveCombine} className="flex flex-col gap-3">
-                <input 
-                  value={combinedName} 
-                  onChange={e => setCombinedName(e.target.value)} 
-                  placeholder="Combined festival name" 
-                  required 
-                  className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white"
-                />
-                <p><b>Your major is included automatically.</b></p>
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-[14px]">
-                  {availableMajors.map(major => (
-                    <label key={major.major_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px] flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        value={major.major_id}
-                        checked={selectedMajorIds.includes(major.major_id)}
-                        onChange={e => {
-                          if (e.target.checked) {
-                            setSelectedMajorIds([...selectedMajorIds, major.major_id]);
-                          } else {
-                            setSelectedMajorIds(selectedMajorIds.filter(id => id !== major.major_id));
-                          }
-                        }}
+                    <input
+                      {...editCandidateForm.register('c_number')}
+                      type="number"
+                      min="1"
+                      placeholder="Candidate number"
+                      required
+                      className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-3.5 py-3 text-sm outline-none focus:border-[#2aae94] focus:ring-4 focus:ring-[#20aa91]/10"
+                    />
+
+                    <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-[#cbd9d4] bg-[#fbfdfc] px-3 py-3 sm:col-span-2">
+                      <Upload
+                        size={17}
+                        className="text-[#229c84]"
                       />
-                      {major.major}
+
+                      <span className="text-xs font-semibold text-[#596760]">
+                        Choose new photo
+                      </span>
+
+                      <input
+                        {...editCandidateForm.register('c_photo')}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                      />
                     </label>
+
+                    <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row">
+                      <button
+                        type="submit"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl green-bg px-4 py-3 text-sm font-bold text-white transition active:scale-[.98]"
+                      >
+                        <Check size={16} />
+                        Save Changes
+                      </button>
+
+                      <button
+                        type="button"
+                        className="rounded-xl bg-[#f0f3f1] px-5 py-3 text-sm font-bold text-[#66736e]"
+                        onClick={cancelCandidateEdit}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </section>
+              )}
+
+
+              {/* =====================================================
+                  COMBINED CANDIDATES
+              ===================================================== */}
+              {combinedCandidates.length > 0 && (
+                <section className="rounded-[24px] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
+
+                  <div className="mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fff5dc]">
+                        <User
+                          size={19}
+                          className="text-[#d39429]"
+                        />
+                      </div>
+
+                      <div>
+                        <h2 className="text-[18px] font-bold text-[#182521]">
+                          Combined Candidates
+                        </h2>
+
+                        <p className="text-xs text-[#87938f]">
+                          Candidates from your accepted combination
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {combinedCandidates.map(c => (
+                      <div
+                        key={c.c_id}
+                        className="overflow-hidden rounded-[20px] border border-[#e8ece9] bg-[#fbfdfc]"
+                      >
+                        <div className="relative aspect-[1.55/1] overflow-hidden bg-[#edf2ef]">
+                          {c.c_photo ? (
+                            <img
+                              src={c.c_photo}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center">
+                              <User
+                                size={36}
+                                className="text-[#b2c0bb]"
+                              />
+                            </div>
+                          )}
+
+                          <div className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-[#34423d] shadow-sm">
+                            #{c.c_number}
+                          </div>
+                        </div>
+
+                        <div className="p-3.5">
+                          <p className="truncate text-sm font-bold text-[#27342f]">
+                            {c.c_name}
+                          </p>
+
+                          <p className="mt-1 text-xs text-[#7f8c87]">
+                            {c.major} — {c.c_gender}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+
+              {/* =====================================================
+                  TITLES
+              ===================================================== */}
+              <section className="rounded-[24px] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
+
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#fff1dc]">
+                    <Award
+                      size={19}
+                      className="text-[#d28b22]"
+                    />
+                  </div>
+
+                  <div>
+                    <h2 className="text-[18px] font-bold text-[#182521]">
+                      Titles
+                    </h2>
+
+                    <p className="text-xs text-[#87938f]">
+                      Manage event titles
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className={`mb-4 rounded-xl px-3 py-2.5 text-xs leading-relaxed ${
+                    titlesLocked
+                      ? 'bg-[#fff5ed] text-[#a86c38]'
+                      : 'bg-[#f0faf6] text-[#4d7669]'
+                  }`}
+                >
+                  {titleStatusMsg}
+                </div>
+
+                {/* Add title */}
+                <form
+                  onSubmit={titleForm.handleSubmit(handleAddTitle)}
+                  className="mb-4 grid gap-2 sm:grid-cols-[1fr_180px_auto]"
+                >
+                  <input
+                    {...titleForm.register('title')}
+                    placeholder="Title name"
+                    disabled={titlesLocked}
+                    className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-3.5 py-3 text-sm outline-none placeholder:text-[#aab5b1] focus:border-[#2aae94] focus:ring-4 focus:ring-[#20aa91]/10 disabled:bg-[#f3f5f4]"
+                  />
+
+                  <select
+                    {...titleForm.register('group')}
+                    disabled={titlesLocked}
+                    className="w-full rounded-xl border border-[#dce5e1] bg-[#fbfdfc] px-3.5 py-3 text-sm outline-none focus:border-[#2aae94] focus:ring-4 focus:ring-[#20aa91]/10 disabled:bg-[#f3f5f4]"
+                  >
+                    <option value="boy">Boy title</option>
+                    <option value="girl">Girl title</option>
+                  </select>
+
+                  <button
+                    disabled={titlesLocked}
+                    className="flex items-center justify-center gap-2 rounded-xl green-bg px-4 py-3 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-45"
+                  >
+                    <Plus size={16} />
+                    Add
+                  </button>
+                </form>
+
+                {/* Title list */}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {titles.map(t => (
+                    <div
+                      key={t.title_id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-[#e7ece9] bg-[#fbfdfc] px-3.5 py-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-bold text-[#33413c]">
+                          {t.title}
+                        </p>
+
+                        <span className="mt-1 inline-block rounded-full bg-[#eaf7f3] px-2 py-0.5 text-[9px] font-bold capitalize text-[#238f78]">
+                          {t.group}
+                        </span>
+                      </div>
+
+                      {!titlesLocked && (
+                        <button
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#fff0ee] text-[#bd4037] transition hover:bg-[#ffe5e2]"
+                          onClick={() => deleteTitle(t.title_id)}
+                          aria-label="Delete title"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
-                <div className="flex gap-2">
-                  <button type="submit" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer">
-                    {editingCombinedId !== null ? 'Save Combine' : 'Combine'}
-                  </button>
-                  <button type="button" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer" onClick={() => setIsCombineEditorOpen(false)}>Cancel</button>
-                </div>
-              </form>
+              </section>
             </div>
           )}
 
-          {/* ADD CANDIDATE PANEL */}
-          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-            <h2>Add Current Candidate</h2>
-            <p className="bg-[#f8fafc] p-[12px] rounded-[10px] my-3">{candidateStatusMsg}</p>
-            <form onSubmit={candidateForm.handleSubmit(handleAddCandidate)} className="flex flex-col gap-3">
-              <div>
-                <input {...candidateForm.register('c_name')} placeholder="Name" disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
-                {candidateForm.formState.errors.c_name && <p className="text-red-500 text-xs">{String(candidateForm.formState.errors.c_name.message)}</p>}
-              </div>
-              <div>
-                <input {...candidateForm.register('c_number')} type="number" min="1" placeholder="Candidate number" disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
-                {candidateForm.formState.errors.c_number && <p className="text-red-500 text-xs">{String(candidateForm.formState.errors.c_number.message)}</p>}
-              </div>
-              <div>
-                <select {...candidateForm.register('c_gender')} disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white">
-                  <option value="boy">Boy</option>
-                  <option value="girl">Girl</option>
-                </select>
-              </div>
-              <div>
-                <input {...candidateForm.register('c_photo')} type="file" accept="image/*" disabled={candidateManagementLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
-                {candidateForm.formState.errors.c_photo && <p className="text-red-500 text-xs">{String(candidateForm.formState.errors.c_photo.message)}</p>}
-              </div>
-              <button disabled={candidateManagementLocked} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer disabled:opacity-45">Add</button>
-            </form>
-          </div>
 
-          {/* CANDIDATES LIST PANEL */}
-          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-            <h2>Your Major Candidates</h2>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px] mt-4">
-              {candidates.map(candidate => (
-                <div key={candidate.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
-                  {candidate.c_photo && <img src={candidate.c_photo} className="w-full h-[220px] object-cover rounded-[12px] bg-[#edf1f6] mb-2" />}
-                  <b>#{candidate.c_number} {candidate.c_name}</b> ({candidate.c_gender})
-                  {candidateManagementLocked ? (
-                    <p className="text-[#667085] mt-2">Locked</p>
-                  ) : (
-                    <div className="flex gap-2 mt-3">
-                      <button className="green-bg text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => startCandidateEdit(candidate.c_id)}>Edit</button>
-                      <button className="bg-[#b42318] text-white rounded-[10px] p-[10px_16px] font-bold border-0 cursor-pointer" onClick={() => deleteCandidate(candidate.c_id)}>Delete</button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* =========================================================
+              WHOLE ADMIN UI
+          ========================================================= */}
+          {me && me.admin_role === 'whole_admin' && (
+            <div className="space-y-5">
 
-          {/* COMBINED CANDIDATES PANEL */}
-          {combinedCandidates.length > 0 && (
-            <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-              <h2>Combined Candidates</h2>
-              <p className="text-[#667085] mb-4">Candidates from every major in your accepted combination.</p>
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
-                {combinedCandidates.map(c => (
-                  <div key={c.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
-                    {c.c_photo && <img src={c.c_photo} className="w-full h-[220px] object-cover rounded-[12px] bg-[#edf1f6] mb-2" />}
-                    <b>#{c.c_number} {c.c_name}</b>
-                    <p className="text-[#667085] mt-1">{c.major} — {c.c_gender}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+              {/* Whole candidates */}
+              <section className="rounded-[24px] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
 
-          {/* TITLES PANEL */}
-          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-            <h2>Titles</h2>
-            <p className="bg-[#f8fafc] p-[12px] rounded-[10px] my-3">{titleStatusMsg}</p>
-            <form onSubmit={titleForm.handleSubmit(handleAddTitle)} className="flex flex-col gap-3 mb-4">
-              <input {...titleForm.register('title')} placeholder="Title name" disabled={titlesLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
-              <select {...titleForm.register('group')} disabled={titlesLocked} className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white">
-                <option value="boy">Boy title</option>
-                <option value="girl">Girl title</option>
-              </select>
-              <button disabled={titlesLocked} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer disabled:opacity-45">Add Title</button>
-            </form>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
-              {titles.map(t => (
-                <div key={t.title_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px] flex justify-between items-center">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <b>{t.title}</b> <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold ml-2">{t.group}</span>
-                  </div>
-                  {!titlesLocked && (
-                    <button className="text-[#b42318] rounded-[10px] p-[6px_12px] font-bold border-0 cursor-pointer" onClick={() => deleteTitle(t.title_id)}> <Trash2 size={16} /> </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e8f7f2]">
+                        <Award
+                          size={19}
+                          className="text-[#219d84]"
+                        />
+                      </div>
 
-          {/* EDIT CANDIDATE MODAL / PANEL */}
-          {editingCandidateId !== null && (
-            <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-              <h2>Edit Candidate</h2>
-              <form onSubmit={editCandidateForm.handleSubmit(handleUpdateCandidate)} className="flex flex-col gap-3">
-                <input {...editCandidateForm.register('c_name')} placeholder="Name" required className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
-                <input {...editCandidateForm.register('c_number')} type="number" min="1" placeholder="Candidate number" required className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
-                <input {...editCandidateForm.register('c_photo')} type="file" accept="image/*" className="w-full p-[11px_12px] border border-[#d6dbe5] rounded-[10px] bg-white" />
-                <div className="flex gap-2">
-                  <button type="submit" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer">Save Changes</button>
-                  <button type="button" className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer" onClick={cancelCandidateEdit}>Cancel</button>
-                </div>
-              </form>
-            </div>
-          )}
-        </div>
-      )}
+                      <div>
+                        <h2 className="text-[19px] font-bold text-[#182521]">
+                          The Whole Welcome
+                        </h2>
 
-      {/* WHOLE ADMIN UI */}
-      {me && me.admin_role === 'whole_admin' && (
-        <div>
-          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-            <h2>Whole Festival Candidates</h2>
-            <p className="text-[#667085] mb-3">Only the Whole Admin can manage this list. Major admins cannot edit Whole candidates.</p>
-            <button onClick={loadWhole} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer mb-4">Refresh</button>
-            
-            {!wholeReady ? (
-              <p className="text-red-500 font-semibold">Waiting for: {wholeMissingMajors.join(', ')}</p>
-            ) : (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
-                {wholeCandidates.map(candidate => (
-                  <div key={candidate.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
-                    <b>#{candidate.c_w_number} {candidate.c_name}</b> — {candidate.major}
-                    <p className="text-[#667085] my-2">Awarded: {(candidate.awarded_titles || []).join(', ') || 'No title found'}</p>
-                    <div className="flex items-center gap-2">
-                      <input 
-                        id={`wholeNumber${candidate.c_id}`}
-                        type="number" 
-                        min="1" 
-                        defaultValue={candidate.c_w_number} 
-                        className="w-[100px] p-[8px] border border-[#d6dbe5] rounded-[10px] bg-white"
-                      />
-                      <button onClick={() => {
-                        const inputEl = document.getElementById(`wholeNumber${candidate.c_id}`) as HTMLInputElement;
-                        if (inputEl) updateWholeNumber(candidate.c_id, Number(inputEl.value));
-                      }} className="border-0 rounded-[10px] p-[8px_12px] green-bg text-white font-bold text-xs cursor-pointer">Save</button>
-                      <button className="border-0 rounded-[10px] p-[8px_12px] bg-[#b42318] text-white font-bold text-xs cursor-pointer" onClick={() => removeWhole(candidate.c_id)}>Remove</button>
+                        <p className="text-xs text-[#87938f]">
+                          Manage the whole welcome candidates
+                        </p>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
 
-          <div className="bg-white border border-[#e7ebf2] rounded-[20px] p-[22px] mb-[18px] shadow-[0_10px_32px_rgba(31,42,68,.06)]">
-            <h2>Available Major Winners</h2>
-            <button onClick={loadAvailableWhole} className="border-0 rounded-[10px] p-[10px_16px] green-bg text-white font-bold cursor-pointer mb-4">Refresh</button>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-[14px]">
-              {availableWholeCandidates.map(candidate => (
-                <div key={candidate.c_id} className="bg-white border border-[#e7ebf2] rounded-[16px] p-[14px]">
-                  <b>#{candidate.c_number} {candidate.c_name}</b> — {candidate.major}
-                  <p className="text-[#667085] my-2">Awarded: {(candidate.awarded_titles || []).join(', ')}</p>
-                  {candidate.selected ? (
-                    <span className="inline-block p-[5px_9px] rounded-full bg-[#eef2ff] text-xs font-bold">Added to Whole</span>
-                  ) : (
-                    <button className="border-0 rounded-[10px] p-[8px_14px] green-bg text-white font-bold cursor-pointer" onClick={() => addWhole(candidate.c_id)}>Add</button>
-                  )}
+                  <button
+                    onClick={loadWhole}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#f0f5f3] px-4 py-3 text-xs font-bold text-[#52625b] transition hover:bg-[#e8eeeb] sm:w-auto"
+                  >
+                    <RefreshCw size={14} />
+                    Refresh
+                  </button>
                 </div>
-              ))}
+
+                {!wholeReady ? (
+                  <div className="rounded-[18px] bg-[#fff4f1] p-4">
+                    <p className="text-sm font-bold text-[#b3473e]">
+                      Waiting for major data
+                    </p>
+
+                    <p className="mt-1 text-xs text-[#9c716c]">
+                      {wholeMissingMajors.join(', ')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {wholeCandidates.map(candidate => (
+                      <div
+                        key={candidate.c_id}
+                        className="rounded-[20px] border border-[#e6ece9] bg-[#fbfdfc] p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-bold text-[#293630]">
+                              #{candidate.c_w_number}{' '}
+                              {candidate.c_name}
+                            </p>
+
+                            <p className="mt-1 text-xs text-[#7d8a85]">
+                              {candidate.major}
+                            </p>
+                          </div>
+
+                          <span className="rounded-full bg-[#fff4dc] px-2.5 py-1 text-[9px] font-bold text-[#b47a27]">
+                            Winner
+                          </span>
+                        </div>
+
+                        <p className="mt-3 rounded-xl bg-white p-3 text-xs leading-relaxed text-[#687670]">
+                          <span className="font-bold text-[#4b5954]">
+                            Awarded:
+                          </span>{' '}
+                          {(candidate.awarded_titles || []).join(
+                            ', '
+                          ) || 'No title found'}
+                        </p>
+
+                        <div className="mt-3 flex gap-2">
+                          <input
+                            id={`wholeNumber${candidate.c_id}`}
+                            type="number"
+                            min="1"
+                            defaultValue={candidate.c_w_number}
+                            className="min-w-0 flex-1 rounded-xl border border-[#dce5e1] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#2aae94] focus:ring-4 focus:ring-[#20aa91]/10"
+                          />
+
+                          <button
+                            onClick={() => {
+                              const inputEl =
+                                document.getElementById(
+                                  `wholeNumber${candidate.c_id}`
+                                ) as HTMLInputElement;
+
+                              if (inputEl)
+                                updateWholeNumber(
+                                  candidate.c_id,
+                                  Number(inputEl.value)
+                                );
+                            }}
+                            className="rounded-xl green-bg px-3.5 py-2.5 text-xs font-bold text-white"
+                          >
+                            Save
+                          </button>
+
+                          <button
+                            className="rounded-xl bg-[#fff0ee] px-3.5 py-2.5 text-xs font-bold text-[#bd4037]"
+                            onClick={() =>
+                              removeWhole(candidate.c_id)
+                            }
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+
+              {/* Available winners */}
+              <section className="rounded-[24px] bg-white p-4 shadow-[0_10px_35px_rgba(31,42,68,.07)] sm:p-5">
+
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-[19px] font-bold text-[#182521]">
+                      Available Major Winners
+                    </h2>
+
+                    <p className="mt-1 text-xs text-[#87938f]">
+                      Select winners for the whole welcome
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={loadAvailableWhole}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#f0f5f3] px-4 py-3 text-xs font-bold text-[#52625b] sm:w-auto"
+                  >
+                    <RefreshCw size={14} />
+                    Refresh
+                  </button>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {availableWholeCandidates.map(candidate => (
+                    <div
+                      key={candidate.c_id}
+                      className="rounded-[20px] border border-[#e6ece9] bg-[#fbfdfc] p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-[#293630]">
+                            #{candidate.c_number}{' '}
+                            {candidate.c_name}
+                          </p>
+
+                          <p className="mt-1 text-xs text-[#7d8a85]">
+                            {candidate.major}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="mt-3 text-xs leading-relaxed text-[#687670]">
+                        <span className="font-bold text-[#4b5954]">
+                          Awarded:
+                        </span>{' '}
+                        {(candidate.awarded_titles || []).join(
+                          ', '
+                        ) || 'No title found'}
+                      </p>
+
+                      {candidate.selected ? (
+                        <div className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#eaf8f3] px-3 py-2.5 text-xs font-bold text-[#218f78]">
+                          <Check size={14} />
+                          Added to Whole
+                        </div>
+                      ) : (
+                        <button
+                          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl green-bg px-3 py-2.5 text-xs font-bold text-white transition active:scale-[.98]"
+                          onClick={() =>
+                            addWhole(candidate.c_id)
+                          }
+                        >
+                          <Plus size={15} />
+                          Add to Whole
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
             </div>
-          </div>
+          )}
+
         </div>
-      )}
-    </motion.div>
+      </motion.div>
     </Layout>
   );
 }

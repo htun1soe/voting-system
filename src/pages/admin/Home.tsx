@@ -91,7 +91,7 @@ const Home: React.FC = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="glass-panel rounded-2xl p-8 w-full max-w-md"
+        className="glass-panel rounded-lg p-8 w-full max-w-md"
       >
         {/* HEADER */}
 

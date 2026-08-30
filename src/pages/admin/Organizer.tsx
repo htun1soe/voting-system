@@ -37,8 +37,8 @@ const Organizer: React.FC = () => {
   const [festivalStatus, setFestivalStatus] = useState<StatusData | null>(null);
   
   // QR Form State
-  const [studentsInput, setStudentsInput] = useState<number>(10);
-  const [teachersInput, setTeachersInput] = useState<number>(5);
+  const [studentsInput, setStudentsInput] = useState<number>(0);
+  const [teachersInput, setTeachersInput] = useState<number>(0);
   const [qrMessage, setQrMessage] = useState<string>('Current QR counts will appear here.');
 
   const [festivalMessage, setFestivalMessage] = useState<string>('Use Start Event when candidates and QR codes are ready.');
@@ -137,8 +137,7 @@ const Organizer: React.FC = () => {
     }
   };
 
-  // API Call: Stop Event — navigates to the standalone results page once
-  // the event is successfully ended, instead of displaying winners inline.
+  // API Call: Stop Event
   const handleStopFestival = async () => {
     if (!window.confirm('End this event and finalize winners?')) return;
     if (selectedTargetId === '') return;
